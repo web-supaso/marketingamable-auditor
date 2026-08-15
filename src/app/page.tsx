@@ -1,69 +1,1219 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { 
+  Loader2, 
+  CheckCircle, 
+  AlertTriangle, 
+  TrendingUp, 
+  Copy, 
+  Check, 
+  Crown, 
+  MessageSquare, 
+  DollarSign, 
+  Code2, 
+  ShieldAlert, 
+  Sparkles, 
+  FileText,
+  Scale,
+  XCircle,
+  Mail,
+  Send,
+  ExternalLink,
+  History,
+  Clock,
+  Lock,
+  LogOut,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+
+interface GapRow {
+  capa: string;
+  hallazgo?: string;
+  hallazgo_critico?: string;
+  impacto_tecnico?: string;
+  impacto_negocio?: string;
+  impacto_negocio_dolares?: string;
+  solucion?: string;
+  solucion_propuesta?: string;
+}
+
+interface FugaDinero {
+  titulo: string;
+  impacto_negocio: string;
+  solucion_simple: string;
+}
+
+interface CopyReescrito {
+  enfoque: string;
+  headline: string;
+  subheadline: string;
+}
+
+interface ArmaVentaObjecion {
+  objecion?: string;
+  objecion_cliente?: string;
+  contramedida?: string;
+  contramedida_persuasiva?: string;
+}
+
+interface RoadmapItem {
+  fase: string;
+  accion: string;
+}
+
+export interface ColdEmail {
+  asunto_1: string;
+  asunto_2: string;
+  asunto_3: string;
+  cuerpo_aida: string;
+  cuerpo_pas: string;
+  llamada_a_la_accion: string;
+}
+
+export interface RgpdInfraccion {
+  tipo: string;
+  gravedad: 'Leve' | 'Grave' | 'Muy Grave';
+  articulo_legal: string;
+  explicacion: string;
+  como_solucionarlo: string;
+}
+
+export interface RgpdAudit {
+  nivel_riesgo: 'Crítico' | 'Alto' | 'Medio' | 'Bajo';
+  puntuacion_cumplimiento: number;
+  sancion_estimada_euros: string;
+  diagnostico_legal: string;
+  infracciones: RgpdInfraccion[];
+  gancho_urgencia_comercial: string;
+  elementos_detectados: {
+    tiene_aviso_legal: boolean;
+    tiene_politica_privacidad: boolean;
+    tiene_politica_cookies: boolean;
+    tiene_banner_cmp: boolean;
+    telemetria_sin_bloqueo: boolean;
+  };
+}
+
+interface AuditResult {
+  id?: string;
+  created_at?: string;
+  url: string;
+  industria?: string;
+  puntuacion_global: number;
+  nota_autoridad?: string;
+  resumen_ejecutivo: string;
+  elephant_in_the_room?: string;
+  pitch_whatsapp?: string;
+  cold_email?: ColdEmail;
+  fugas_de_dinero?: FugaDinero[];
+  rgpd_audit?: RgpdAudit;
+  matriz_gap?: GapRow[];
+  proyeccion_roi?: {
+    trafico_mensual?: string;
+    ticket_medio?: string;
+    conversion_actual?: string;
+    escenario_pesimista?: string;
+    escenario_realista?: string;
+    escenario_optimista?: string;
+    conclusion?: string;
+  };
+  geo_schema?: {
+    entidades?: string[];
+    frase_citabilidad?: string;
+    json_ld?: unknown;
+    json_ld_code?: unknown;
+  };
+  copys_reescritos?: CopyReescrito[];
+  armas_venta_objeciones?: ArmaVentaObjecion[];
+  puntos_fuertes?: string[];
+  recomendacion_prioritaria?: string;
+  roadmap?: RoadmapItem[];
+  detectedInfo?: {
+    title?: string;
+    isSpa?: boolean;
+    hasIframe?: boolean;
+    hasWhatsapp?: boolean;
+    hasPhone?: boolean;
+    hasEmail?: boolean;
+    hasGoogleMaps?: boolean;
+    hasAnalytics?: boolean;
+    hasAvisoLegal?: boolean;
+    hasPrivacyPolicy?: boolean;
+    hasCookiesPolicy?: boolean;
+    hasCmpBanner?: boolean;
+    telemetryWithoutConsent?: boolean;
+  };
+}
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  const [url, setUrl] = useState('');
+  const [industria, setIndustria] = useState('Clínica Dental / Salud');
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<AuditResult | null>(null);
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'outreach' | 'nexus' | 'rgpd' | 'fugas'>('outreach');
+  const [outreachMode, setOutreachMode] = useState<'whatsapp' | 'email'>('whatsapp');
+  const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  const [historial, setHistorial] = useState<AuditResult[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const authStatus = typeof window !== 'undefined' ? localStorage.getItem('mkt_intranet_auth') : null;
+    
+    if (authStatus === 'true') {
+      setTimeout(() => {
+        if (isMounted) {
+          setIsAuthenticated(true);
+          setCheckingAuth(false);
+        }
+      }, 0);
+
+      fetch('/api/audit')
+        .then((res) => res.json())
+        .then((json) => {
+          if (isMounted && json.success && Array.isArray(json.data)) {
+            setHistorial(json.data as AuditResult[]);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setTimeout(() => {
+        if (isMounted) setCheckingAuth(false);
+      }, 0);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput) return;
+    setLoginLoading(true);
+    setLoginError('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem('mkt_intranet_auth', 'true');
+        setIsAuthenticated(true);
+        refreshHistorial();
+      } else {
+        setLoginError(data.error || 'Clave de acceso incorrecta');
+      }
+    } catch {
+      setLoginError('Error al conectar con el servidor de autenticación');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('mkt_intranet_auth');
+    setIsAuthenticated(false);
+    setPasswordInput('');
+  };
+
+  const refreshHistorial = () => {
+    fetch('/api/audit')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setHistorial(json.data as AuditResult[]);
+        }
+      })
+      .catch(() => {});
+  };
+
+  const handleAudit = async () => {
+    if (!url) return;
+    setLoading(true);
+    setError('');
+    setResultado(null);
+
+    try {
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, industria }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResultado(data.data as AuditResult);
+        setActiveTab('outreach');
+        refreshHistorial();
+      } else {
+        setError(data.error || 'Error al analizar la web');
+      }
+    } catch (err: unknown) {
+      const errorObj = err as Error;
+      setError(errorObj?.message || 'Error de conexión con el servidor. Revisa tu API Key de Gemini en .env.local.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const seleccionarDelHistorial = (audit: AuditResult) => {
+    setResultado(audit);
+    setUrl(audit.url || '');
+    if (audit.industria) setIndustria(audit.industria);
+    setActiveTab('outreach');
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const copyToClipboard = (text: string, sectionKey: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSection(sectionKey);
+    setTimeout(() => setCopiedSection(null), 2500);
+  };
+
+  const pitchText = resultado?.pitch_whatsapp || (resultado ? `Hola, estuve revisando su web (${resultado.url}) y noté un par de detalles que podrían estar frenando sus consultas. 
+
+📊 Puntuación de conversión: ${resultado.puntuacion_global}/100
+💡 Resumen: ${resultado.resumen_ejecutivo}
+
+🔴 Fugas detectadas:
+${resultado.fugas_de_dinero?.map((f: FugaDinero, i: number) => `${i + 1}. *${f.titulo}*: ${f.impacto_negocio}`).join('\n') || ''}
+
+✅ Puntos fuertes: ${resultado.puntos_fuertes?.join(', ') || ''}
+
+Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resultado.recomendacion_prioritaria || ''}) en menos de 24 horas. ¿Les gustaría que les envíe una propuesta sin compromiso?` : '');
+
+  const waShareUrl = `https://wa.me/?text=${encodeURIComponent(pitchText)}`;
+  const mailSubject = resultado?.cold_email?.asunto_1 || `Una duda rápida sobre ${url}`;
+  const mailBody = resultado?.cold_email?.cuerpo_aida || pitchText;
+  const mailtoUrl = `mailto:?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
+
+  // 1. Estado de carga de sesión inicial
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#D8F3DC]" size={32} />
+      </div>
+    );
+  }
+
+  // 2. Pantalla de Bloqueo / Login Intranet
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col justify-between font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-[#121212] p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
+            
+            <div className="text-center flex flex-col items-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[11px] font-bold uppercase tracking-wider mb-3">
+                <Image src="/002.gif" alt="Marketing Amable" width={18} height={18} className="h-4 w-auto" unoptimized />
+                <span>Intranet Privada</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 mb-2">
+                <span className="text-2xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
+                <span className="text-2xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
+              </div>
+
+              <h2 className="text-lg font-bold text-white">Auditor Comercial & Autoridad 360°</h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Ingresa tu clave de acceso para desbloquear el generador de auditorías y prospección.
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                  Clave de Acceso Intranet
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                    <Lock size={16} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Escribe tu contraseña..."
+                    className="w-full pl-10 pr-10 py-3 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-sm"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {loginError && (
+                <div className="p-3 bg-rose-950/60 border border-rose-800 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                  <AlertTriangle size={14} className="shrink-0" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loginLoading || !passwordInput}
+                className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm cursor-pointer"
+              >
+                {loginLoading ? (
+                  <>
+                    <Loader2 className="animate-spin text-[#0D0D0D]" size={16} />
+                    <span>Verificando acceso...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={16} />
+                    <span>Ingresar a la Intranet</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center text-[11px] text-slate-500">
+              Uso exclusivo para el equipo de Marketing Amable.
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Oficial */}
+        <footer className="w-full border-t border-white/10 py-5 bg-[#0D0D0D]">
+          <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <div>&copy; {new Date().getFullYear()} Marketing Amable. Todos los derechos reservados.</div>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400">Diseñado con pasión por</span>
+              <a 
+                href="https://www.marketingamable.com/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/15 transition-all align-middle shadow-sm"
+              >
+                <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
+                <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
+                <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  // 3. Panel Principal Autenticado
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
+      
+      {/* Barra Superior de Sesión */}
+      <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2.5 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2 text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Sesión Activa en Intranet</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-300 transition cursor-pointer px-2.5 py-1 rounded-lg hover:bg-white/5"
+        >
+          <LogOut size={13} />
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8">
+        
+        {/* Header Hero Branding Oficial */}
+        <header className="mb-10 text-center flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
+            <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
+            <span>Auditor Comercial & Autoridad 360°</span>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
+            <span className="text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
+          </div>
+
+          <h1 className="text-xl md:text-2xl font-bold text-slate-300 tracking-normal mb-3 max-w-xl">
+            Diagnóstico de <span className="text-[#D8F3DC] underline decoration-[#1B4332] underline-offset-4">Fugas de Dinero & Conversión</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto">
+            Convierte datos técnicos y legales en argumentos de venta letales: de WhatsApp y Cold Email al cierre de presupuestos de consultoría.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        </header>
+
+        {/* Formulario de Entrada */}
+        <div className="bg-[#121212] p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 mb-8">
+          <div className="grid md:grid-cols-3 gap-4 mb-5">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                URL del Negocio / Cliente Prospecto
+              </label>
+              <input 
+                type="text" 
+                placeholder="ej: clinicadental.com o https://..." 
+                className="w-full p-3.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition font-mono text-sm"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAudit()}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                Industria / Nicho
+              </label>
+              <select 
+                className="w-full p-3.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] outline-none transition cursor-pointer text-sm"
+                value={industria}
+                onChange={(e) => setIndustria(e.target.value)}
+              >
+                <option>Clínica Dental / Salud</option>
+                <option>Reformas / Construcción / Hogar</option>
+                <option>Restaurante / Hostelería</option>
+                <option>Despacho Legal / Contable</option>
+                <option>Consultoría B2B / High-Ticket</option>
+                <option>Estética / Belleza / Spa</option>
+                <option>Inmobiliaria / Real Estate</option>
+                <option>Comercio / Tienda Online</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Historial Reciente de Supabase */}
+          {historial.length > 0 && (
+            <div className="mb-5 p-3.5 bg-[#0D0D0D] rounded-xl border border-white/10">
+              <div className="flex items-center justify-between gap-2 mb-2 text-xs font-bold text-slate-400">
+                <span className="flex items-center gap-1.5 text-[#D8F3DC]">
+                  <History size={14} /> Auditorías Guardadas ({historial.length})
+                </span>
+                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                  <Clock size={11} /> Clic para recargar sin gastar tokens
+                </span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                {historial.map((h, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => seleccionarDelHistorial(h)}
+                    className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs transition cursor-pointer"
+                  >
+                    <span className="font-mono text-slate-200">{h.url.replace(/^https?:\/\//, '')}</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      h.puntuacion_global >= 70 ? 'bg-emerald-950 text-emerald-300' :
+                      h.puntuacion_global >= 40 ? 'bg-amber-950 text-amber-300' : 'bg-rose-950 text-rose-300'
+                    }`}>
+                      {h.puntuacion_global}/100
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={handleAudit}
+            disabled={loading || !url}
+            className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-base cursor-pointer"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin text-[#0D0D0D]" size={20} /> 
+                <span>Ejecutando diagnóstico 360° con IA y escaneo legal...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={20} className="text-[#0D0D0D]" />
+                <span>Generar Auditoría & Estrategia Comercial</span>
+              </>
+            )}
+          </button>
         </div>
+
+        {error && (
+          <div className="bg-rose-950/60 text-rose-300 p-5 rounded-xl mb-8 border border-rose-800 flex items-start gap-3">
+            <AlertTriangle className="text-rose-400 shrink-0 mt-0.5" size={20} />
+            <div>
+              <div className="font-bold">Error en la auditoría</div>
+              <div className="text-sm opacity-90">{error}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Dashboard de Resultados */}
+        {resultado && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+            {/* Header del Reporte */}
+            <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  <span>Reporte Generado</span> • <span className="text-[#D8F3DC]">{industria}</span>
+                </div>
+                <h2 className="text-2xl font-black text-white">{resultado.url}</h2>
+                {resultado.detectedInfo?.title && (
+                  <p className="text-sm text-slate-400 mt-1">Título detectado: <span className="text-slate-300 font-mono">&ldquo;{resultado.detectedInfo.title}&rdquo;</span></p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4 bg-[#0D0D0D] px-6 py-4 rounded-xl border border-white/10 shrink-0">
+                <div className="text-right">
+                  <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Score Conversión</div>
+                  <div className="text-xs text-[#D8F3DC] font-medium">Nota: {resultado.nota_autoridad || `${(resultado.puntuacion_global / 10).toFixed(1)} / 10`}</div>
+                </div>
+                <div className={`text-4xl font-black ${
+                  resultado.puntuacion_global >= 70 ? 'text-emerald-400' : 
+                  resultado.puntuacion_global >= 40 ? 'text-amber-400' : 'text-rose-400'
+                }`}>
+                  {resultado.puntuacion_global}<span className="text-xl text-slate-500 font-normal">/100</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Selector de Pestañas Principales */}
+            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+              <button
+                onClick={() => setActiveTab('outreach')}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                  activeTab === 'outreach'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <MessageSquare size={18} />
+                <span>1. Outreach Rápido (WhatsApp & Email)</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('nexus')}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                  activeTab === 'nexus'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Crown size={18} />
+                <span>2. Informe Autoridad (NEXUS 360°)</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('rgpd')}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                  activeTab === 'rgpd'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Scale size={18} />
+                <span>3. RGPD & Multas UE</span>
+                {resultado.rgpd_audit?.nivel_riesgo && (
+                  <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-black ${
+                    resultado.rgpd_audit.nivel_riesgo === 'Crítico' || resultado.rgpd_audit.nivel_riesgo === 'Alto'
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-[#1B4332] text-[#D8F3DC]'
+                  }`}>
+                    {resultado.rgpd_audit.nivel_riesgo}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('fugas')}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                  activeTab === 'fugas'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <AlertTriangle size={18} />
+                <span>4. Fugas de Dinero</span>
+              </button>
+            </div>
+
+            {/* CONTENIDO TAB 1: OUTREACH RÁPIDO (WHATSAPP & COLD EMAIL B2B) */}
+            {activeTab === 'outreach' && (
+              <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
+                
+                {/* Sub-selector Outreach: WhatsApp vs Cold Email */}
+                <div className="flex items-center justify-between flex-wrap gap-4 border-b border-white/10 pb-4">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setOutreachMode('whatsapp')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachMode === 'whatsapp'
+                          ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
+                          : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      <MessageSquare size={15} />
+                      <span>Mensaje WhatsApp</span>
+                    </button>
+                    <button
+                      onClick={() => setOutreachMode('email')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachMode === 'email'
+                          ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
+                          : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      <Mail size={15} />
+                      <span>Cold Email B2B (AIDA / PAS)</span>
+                    </button>
+                  </div>
+
+                  {outreachMode === 'whatsapp' ? (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={waShareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer shadow-sm"
+                      >
+                        <Send size={14} />
+                        <span>Abrir en WhatsApp</span>
+                      </a>
+                      <button
+                        onClick={() => copyToClipboard(pitchText, 'pitch')}
+                        className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer"
+                      >
+                        {copiedSection === 'pitch' ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedSection === 'pitch' ? '¡Copiado!' : 'Copiar Texto'}</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <a
+                      href={mailtoUrl}
+                      className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer"
+                    >
+                      <ExternalLink size={14} />
+                      <span>Abrir en Gestor de Correo</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* Vista WhatsApp */}
+                {outreachMode === 'whatsapp' && (
+                  <div className="space-y-4">
+                    <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 font-mono text-sm text-slate-300 leading-relaxed whitespace-pre-wrap selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
+                      {pitchText}
+                    </div>
+
+                    <div className="p-4 bg-[#1B4332]/20 rounded-xl border border-[#1B4332] flex items-start gap-3">
+                      <TrendingUp className="text-[#D8F3DC] shrink-0 mt-0.5" size={20} />
+                      <div className="text-sm text-slate-300">
+                        <strong className="text-[#D8F3DC]">Estrategia recomendada:</strong> Envía este mensaje por WhatsApp como primer contacto. Cuando te respondan pidiendo más detalles, saca las armas del <strong>Informe de Autoridad 360°</strong> o de la <strong>Auditoría RGPD</strong> para cerrar el presupuesto.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Vista Cold Email B2B */}
+                {outreachMode === 'email' && (
+                  <div className="space-y-6">
+                    {/* Asuntos de Alta Apertura */}
+                    {resultado.cold_email && (
+                      <div className="space-y-3">
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#D8F3DC] flex items-center gap-1.5">
+                          <Mail size={16} /> Asuntos de Alta Tasa de Apertura (+60% sin spam):
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-3">
+                          <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Opción 1 (Intriga / Curiosidad):</span>
+                              <p className="text-sm font-semibold text-white">&ldquo;{resultado.cold_email.asunto_1}&rdquo;</p>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(resultado.cold_email?.asunto_1 || '', 'subj1')}
+                              className="mt-2 self-start flex items-center gap-1 text-[11px] bg-white/5 hover:bg-white/10 text-[#D8F3DC] px-2.5 py-1 rounded transition"
+                            >
+                              {copiedSection === 'subj1' ? <Check size={12} /> : <Copy size={12} />}
+                              <span>{copiedSection === 'subj1' ? 'Copiado' : 'Copiar Asunto'}</span>
+                            </button>
+                          </div>
+
+                          <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Opción 2 (Impacto en Negocio):</span>
+                              <p className="text-sm font-semibold text-white">&ldquo;{resultado.cold_email.asunto_2}&rdquo;</p>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(resultado.cold_email?.asunto_2 || '', 'subj2')}
+                              className="mt-2 self-start flex items-center gap-1 text-[11px] bg-white/5 hover:bg-white/10 text-[#D8F3DC] px-2.5 py-1 rounded transition"
+                            >
+                              {copiedSection === 'subj2' ? <Check size={12} /> : <Copy size={12} />}
+                              <span>{copiedSection === 'subj2' ? 'Copiado' : 'Copiar Asunto'}</span>
+                            </button>
+                          </div>
+
+                          <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Opción 3 (Personalizado Web):</span>
+                              <p className="text-sm font-semibold text-white">&ldquo;{resultado.cold_email.asunto_3}&rdquo;</p>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(resultado.cold_email?.asunto_3 || '', 'subj3')}
+                              className="mt-2 self-start flex items-center gap-1 text-[11px] bg-white/5 hover:bg-white/10 text-[#D8F3DC] px-2.5 py-1 rounded transition"
+                            >
+                              {copiedSection === 'subj3' ? <Check size={12} /> : <Copy size={12} />}
+                              <span>{copiedSection === 'subj3' ? 'Copiado' : 'Copiar Asunto'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Plantillas de Email: AIDA & PAS */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Estructura AIDA */}
+                      <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 space-y-3 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+                            <span className="text-xs font-bold uppercase text-[#D8F3DC]">Plantilla AIDA (Atención-Interés-Deseo-Acción)</span>
+                            <button
+                              onClick={() => copyToClipboard(resultado.cold_email?.cuerpo_aida || '', 'aida')}
+                              className="flex items-center gap-1 text-xs bg-white/5 hover:bg-white/10 text-[#D8F3DC] font-bold px-2.5 py-1 rounded transition"
+                            >
+                              {copiedSection === 'aida' ? <Check size={13} /> : <Copy size={13} />}
+                              <span>{copiedSection === 'aida' ? 'Copiado' : 'Copiar'}</span>
+                            </button>
+                          </div>
+                          <div className="font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                            {resultado.cold_email?.cuerpo_aida || 'Generando plantilla AIDA...'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Estructura PAS */}
+                      <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 space-y-3 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+                            <span className="text-xs font-bold uppercase text-amber-400">Plantilla PAS (Problema-Agitación-Solución)</span>
+                            <button
+                              onClick={() => copyToClipboard(resultado.cold_email?.cuerpo_pas || '', 'pas')}
+                              className="flex items-center gap-1 text-xs bg-white/5 hover:bg-white/10 text-amber-400 font-bold px-2.5 py-1 rounded transition"
+                            >
+                              {copiedSection === 'pas' ? <Check size={13} /> : <Copy size={13} />}
+                              <span>{copiedSection === 'pas' ? 'Copiado' : 'Copiar'}</span>
+                            </button>
+                          </div>
+                          <div className="font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                            {resultado.cold_email?.cuerpo_pas || 'Generando plantilla PAS...'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Llamada a la acción recomendada */}
+                    {resultado.cold_email?.llamada_a_la_accion && (
+                      <div className="p-4 bg-[#1B4332]/20 rounded-xl border border-[#1B4332] text-xs text-slate-300">
+                        <strong className="text-[#D8F3DC] block mb-1">💡 Soft CTA de Cierre Recomendado:</strong>
+                        &ldquo;{resultado.cold_email.llamada_a_la_accion}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* CONTENIDO TAB 2: INFORME DE AUTORIDAD 360° (NEXUS) */}
+            {activeTab === 'nexus' && (
+              <div className="space-y-6">
+                
+                {/* Resumen Ejecutivo & The Elephant in the Room */}
+                <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                  <div className="flex items-center gap-2 text-[#D8F3DC] font-bold uppercase tracking-wider text-xs">
+                    <Crown size={16} /> Resumen Ejecutivo & Diagnóstico Crítico
+                  </div>
+                  <h3 className="text-2xl font-black text-white">{resultado.resumen_ejecutivo}</h3>
+                  
+                  {resultado.elephant_in_the_room && (
+                    <div className="p-5 bg-rose-950/40 border border-rose-900/80 rounded-xl space-y-2">
+                      <div className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                        <ShieldAlert size={16} /> &ldquo;The Elephant in the Room&rdquo; (Error Crítico de Negocio)
+                      </div>
+                      <p className="text-slate-200 leading-relaxed text-sm md:text-base">{resultado.elephant_in_the_room}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Matriz GAP 5.0 */}
+                {resultado.matriz_gap && resultado.matriz_gap.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-5">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <FileText className="text-[#D8F3DC]" size={20} /> Matriz GAP (Diagnóstico Holístico)
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm text-slate-300 border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/10 text-xs font-bold uppercase text-slate-400">
+                            <th className="py-3 px-4">Capa</th>
+                            <th className="py-3 px-4">Hallazgo Crítico</th>
+                            <th className="py-3 px-4">Impacto en Negocio ($)</th>
+                            <th className="py-3 px-4">Solución Propuesta</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {resultado.matriz_gap.map((row: GapRow, i: number) => (
+                            <tr key={i} className="hover:bg-white/5 transition">
+                              <td className="py-3.5 px-4 font-bold text-[#D8F3DC] whitespace-nowrap">{row.capa}</td>
+                              <td className="py-3.5 px-4 text-slate-200">{row.hallazgo || row.hallazgo_critico}</td>
+                              <td className="py-3.5 px-4 text-rose-300 text-xs">{row.impacto_negocio || row.impacto_negocio_dolares}</td>
+                              <td className="py-3.5 px-4 text-emerald-400 text-xs">{row.solucion || row.solucion_propuesta}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Proyección Financiera de ROI */}
+                {resultado.proyeccion_roi && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-5">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <DollarSign className="text-emerald-400" size={22} /> Proyección Financiera de ROI
+                      </h3>
+                      <div className="text-xs text-slate-400">
+                        Base: {resultado.proyeccion_roi.trafico_mensual || '3,000 visitas'} • Ticket: {resultado.proyeccion_roi.ticket_medio || '$1,500'}
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Escenario Pesimista (+5%)</div>
+                        <div className="text-2xl font-black text-slate-200">{resultado.proyeccion_roi.escenario_pesimista}</div>
+                        <div className="text-xs text-slate-500 mt-1">Mejora mínima de conversión</div>
+                      </div>
+
+                      <div className="p-5 bg-[#1B4332]/20 rounded-xl border border-[#1B4332]">
+                        <div className="text-xs font-bold text-[#D8F3DC] uppercase tracking-wider mb-1">Escenario Realista (+15%)</div>
+                        <div className="text-2xl font-black text-[#D8F3DC]">{resultado.proyeccion_roi.escenario_realista}</div>
+                        <div className="text-xs text-[#D8F3DC]/80 mt-1">Objetivo comercial estándar</div>
+                      </div>
+
+                      <div className="p-5 bg-emerald-950/30 rounded-xl border border-emerald-800/60">
+                        <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Escenario Optimista (+30%)</div>
+                        <div className="text-2xl font-black text-emerald-300">{resultado.proyeccion_roi.escenario_optimista}</div>
+                        <div className="text-xs text-emerald-400/80 mt-1">Transformación visual completa</div>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-slate-400 italic text-center">
+                      &ldquo;{resultado.proyeccion_roi.conclusion}&rdquo;
+                    </p>
+                  </div>
+                )}
+
+                {/* GEO (SEO para IAs) & Schema JSON-LD */}
+                {resultado.geo_schema && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Code2 className="text-[#D8F3DC]" size={20} /> GEO: Posicionamiento para IAs & Schema JSON-LD
+                      </h3>
+                      <button
+                        onClick={() => copyToClipboard(typeof resultado.geo_schema?.json_ld === 'string' ? resultado.geo_schema.json_ld : JSON.stringify(resultado.geo_schema?.json_ld || resultado.geo_schema?.json_ld_code, null, 2), 'schema')}
+                        className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/10 text-white font-bold px-3 py-1.5 rounded-lg transition cursor-pointer"
+                      >
+                        {copiedSection === 'schema' ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedSection === 'schema' ? 'Copiado' : 'Copiar JSON-LD'}</span>
+                      </button>
+                    </div>
+
+                    {resultado.geo_schema.frase_citabilidad && (
+                      <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 text-sm">
+                        <span className="text-xs font-bold text-[#D8F3DC] uppercase block mb-1">Frase de Citabilidad (LLMs / ChatGPT / Perplexity):</span>
+                        <p className="text-slate-300 italic font-mono">&ldquo;{resultado.geo_schema.frase_citabilidad}&rdquo;</p>
+                      </div>
+                    )}
+
+                    <div className="bg-[#0D0D0D] p-4 rounded-xl border border-white/10 text-xs font-mono text-emerald-400 overflow-x-auto max-h-48">
+                      <pre>{typeof resultado.geo_schema.json_ld === 'string' ? resultado.geo_schema.json_ld : JSON.stringify(resultado.geo_schema.json_ld || resultado.geo_schema.json_ld_code, null, 2)}</pre>
+                    </div>
+                  </div>
+                )}
+
+                {/* Copywriting Reescrito (3 Enfoques) */}
+                {resultado.copys_reescritos && resultado.copys_reescritos.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Sparkles className="text-[#D8F3DC]" size={20} /> Copywriting Reescrito (3 Enfoques Psicológicos)
+                    </h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {resultado.copys_reescritos.map((copy: CopyReescrito, i: number) => (
+                        <div key={i} className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                          <div className="text-xs font-bold text-[#D8F3DC] uppercase tracking-wider">{copy.enfoque}</div>
+                          <div className="font-bold text-white text-base">&ldquo;{copy.headline}&rdquo;</div>
+                          <p className="text-xs text-slate-400 leading-relaxed">&ldquo;{copy.subheadline}&rdquo;</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Armas de Venta & Anticipación de Objeciones */}
+                {resultado.armas_venta_objeciones && resultado.armas_venta_objeciones.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <ShieldAlert className="text-rose-400" size={20} /> Armas de Venta (Anticipación de Objeciones)
+                    </h3>
+                    <div className="space-y-3">
+                      {resultado.armas_venta_objeciones.map((item: ArmaVentaObjecion, i: number) => (
+                        <div key={i} className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                          <div className="text-xs font-bold text-rose-400 uppercase">Objeción del cliente: &ldquo;{item.objecion || item.objecion_cliente}&rdquo;</div>
+                          <div className="text-sm text-slate-300 pl-3 border-l-2 border-[#D8F3DC]">
+                            <strong className="text-white">Contramedida letal:</strong> {item.contramedida || item.contramedida_persuasiva}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Roadmap de 5 Fases */}
+                {resultado.roadmap && resultado.roadmap.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <TrendingUp className="text-[#D8F3DC]" size={20} /> Roadmap de Transformación
+                    </h3>
+                    <div className="grid md:grid-cols-5 gap-3">
+                      {resultado.roadmap.map((paso: RoadmapItem, i: number) => (
+                        <div key={i} className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-1">
+                          <div className="text-xs font-bold text-[#D8F3DC]">{paso.fase}</div>
+                          <p className="text-xs text-slate-300 leading-snug">{paso.accion}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* CONTENIDO TAB 3: MÓDULO LEGAL RGPD & SANCIONES UE / AEPD */}
+            {activeTab === 'rgpd' && (
+              <div className="space-y-6">
+                
+                {/* Resumen de Riesgo Legal & Sanción Estimada */}
+                <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-wider text-xs">
+                        <Scale size={16} /> Auditoría de Cumplimiento Legal (RGPD & LSSI)
+                      </div>
+                      <h3 className="text-2xl font-black text-white mt-1">Exposición a Sanciones y Multas AEPD</h3>
+                      <p className="text-slate-400 text-sm mt-1">
+                        {resultado.rgpd_audit?.diagnostico_legal || 'Diagnóstico de vulnerabilidad regulatoria en la Unión Europea.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-4 bg-[#0D0D0D] p-4 rounded-xl border border-white/10 shrink-0">
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase font-bold">Riesgo Global</div>
+                        <div className={`text-xl font-black ${
+                          resultado.rgpd_audit?.nivel_riesgo === 'Crítico' || resultado.rgpd_audit?.nivel_riesgo === 'Alto'
+                            ? 'text-rose-400'
+                            : 'text-emerald-400'
+                        }`}>
+                          {resultado.rgpd_audit?.nivel_riesgo || 'Alto'}
+                        </div>
+                      </div>
+                      <div className="border-l border-white/10 pl-4">
+                        <div className="text-xs text-slate-400 uppercase font-bold">Sanción Estimada</div>
+                        <div className="text-lg font-black text-amber-400">
+                          {resultado.rgpd_audit?.sancion_estimada_euros || '3.000€ - 30.000€'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Checklist de Elementos Legales Detectados */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
+                    <div className={`p-3.5 rounded-xl border flex flex-col items-center text-center gap-1.5 ${
+                      resultado.rgpd_audit?.elementos_detectados?.tiene_aviso_legal 
+                        ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' 
+                        : 'bg-rose-950/20 border-rose-900/60 text-rose-300'
+                    }`}>
+                      {resultado.rgpd_audit?.elementos_detectados?.tiene_aviso_legal ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                      <span className="text-xs font-bold">Aviso Legal</span>
+                      <span className="text-[10px] opacity-75">{resultado.rgpd_audit?.elementos_detectados?.tiene_aviso_legal ? 'Detectado' : 'Faltante'}</span>
+                    </div>
+
+                    <div className={`p-3.5 rounded-xl border flex flex-col items-center text-center gap-1.5 ${
+                      resultado.rgpd_audit?.elementos_detectados?.tiene_politica_privacidad 
+                        ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' 
+                        : 'bg-rose-950/20 border-rose-900/60 text-rose-300'
+                    }`}>
+                      {resultado.rgpd_audit?.elementos_detectados?.tiene_politica_privacidad ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                      <span className="text-xs font-bold">Privacidad</span>
+                      <span className="text-[10px] opacity-75">{resultado.rgpd_audit?.elementos_detectados?.tiene_politica_privacidad ? 'Detectado' : 'Faltante'}</span>
+                    </div>
+
+                    <div className={`p-3.5 rounded-xl border flex flex-col items-center text-center gap-1.5 ${
+                      resultado.rgpd_audit?.elementos_detectados?.tiene_politica_cookies 
+                        ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' 
+                        : 'bg-rose-950/20 border-rose-900/60 text-rose-300'
+                    }`}>
+                      {resultado.rgpd_audit?.elementos_detectados?.tiene_politica_cookies ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                      <span className="text-xs font-bold">Política Cookies</span>
+                      <span className="text-[10px] opacity-75">{resultado.rgpd_audit?.elementos_detectados?.tiene_politica_cookies ? 'Detectado' : 'Faltante'}</span>
+                    </div>
+
+                    <div className={`p-3.5 rounded-xl border flex flex-col items-center text-center gap-1.5 ${
+                      resultado.rgpd_audit?.elementos_detectados?.tiene_banner_cmp 
+                        ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' 
+                        : 'bg-rose-950/20 border-rose-900/60 text-rose-300'
+                    }`}>
+                      {resultado.rgpd_audit?.elementos_detectados?.tiene_banner_cmp ? <CheckCircle size={18} /> : <XCircle size={18} />}
+                      <span className="text-xs font-bold">Banner CMP</span>
+                      <span className="text-[10px] opacity-75">{resultado.rgpd_audit?.elementos_detectados?.tiene_banner_cmp ? 'Detectado' : 'No Detectado'}</span>
+                    </div>
+
+                    <div className={`p-3.5 rounded-xl border flex flex-col items-center text-center gap-1.5 col-span-2 md:col-span-1 ${
+                      !resultado.rgpd_audit?.elementos_detectados?.telemetria_sin_bloqueo 
+                        ? 'bg-emerald-950/20 border-emerald-900/60 text-emerald-300' 
+                        : 'bg-rose-950/30 border-rose-800 text-rose-300'
+                    }`}>
+                      {!resultado.rgpd_audit?.elementos_detectados?.telemetria_sin_bloqueo ? <CheckCircle size={18} /> : <ShieldAlert size={18} />}
+                      <span className="text-xs font-bold">Bloqueo Cookies</span>
+                      <span className="text-[10px] opacity-75">{!resultado.rgpd_audit?.elementos_detectados?.telemetria_sin_bloqueo ? 'Correcto' : 'Dispara sin Opt-in'}</span>
+                    </div>
+                  </div>
+
+                  {/* Gancho de Urgencia Comercial */}
+                  {resultado.rgpd_audit?.gancho_urgencia_comercial && (
+                    <div className="p-5 bg-gradient-to-r from-[#1B4332]/40 via-[#1B4332]/20 to-transparent border border-[#1B4332] rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div className="space-y-1">
+                        <div className="text-xs font-bold text-[#D8F3DC] uppercase tracking-wider">🎯 Gancho Comercial de Cierre Rápido:</div>
+                        <p className="text-slate-200 text-sm italic font-medium">&ldquo;{resultado.rgpd_audit.gancho_urgencia_comercial}&rdquo;</p>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(resultado.rgpd_audit?.gancho_urgencia_comercial || '', 'rgpd_hook')}
+                        className="shrink-0 flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer"
+                      >
+                        {copiedSection === 'rgpd_hook' ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedSection === 'rgpd_hook' ? '¡Copiado!' : 'Copiar Gancho'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Infracciones Detalladas */}
+                {resultado.rgpd_audit?.infracciones && resultado.rgpd_audit.infracciones.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                      <ShieldAlert className="text-rose-400" size={20} /> Infracciones & Riesgos Regulatorios Detectados
+                    </h4>
+                    <div className="space-y-4">
+                      {resultado.rgpd_audit.infracciones.map((inf: RgpdInfraccion, idx: number) => (
+                        <div key={idx} className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+                            <span className="font-bold text-white text-base flex items-center gap-2">
+                              <span className="text-rose-400">#{idx + 1}</span> {inf.tipo}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                {inf.gravedad}
+                              </span>
+                              <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-white/5 text-slate-300 border border-white/10">
+                                {inf.articulo_legal}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-slate-300 leading-relaxed">{inf.explicacion}</p>
+                          <div className="p-3 bg-emerald-950/30 rounded-lg border border-emerald-900/40 text-xs text-emerald-300 flex items-start gap-2">
+                            <CheckCircle size={15} className="shrink-0 mt-0.5" />
+                            <div><strong>Solución técnica que ofreces:</strong> {inf.como_solucionarlo}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* CONTENIDO TAB 4: FUGAS DE DINERO CLÁSICAS */}
+            {activeTab === 'fugas' && (
+              <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <AlertTriangle className="text-rose-400" size={22} /> Fugas de Dinero Detectadas
+                </h3>
+                <div className="space-y-4">
+                  {resultado.fugas_de_dinero?.map((fuga: FugaDinero, idx: number) => (
+                    <div key={idx} className="p-5 bg-rose-950/30 rounded-xl border border-rose-900/60 space-y-2">
+                      <h4 className="font-bold text-rose-300 text-lg">{idx + 1}. {fuga.titulo}</h4>
+                      <p className="text-sm text-slate-300"><strong>Impacto en negocio:</strong> {fuga.impacto_negocio}</p>
+                      <p className="text-sm text-emerald-400 bg-emerald-950/40 p-3 rounded-lg border border-emerald-900/50">
+                        <strong>✅ Solución rápida:</strong> {fuga.solucion_simple}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                  <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10">
+                    <h4 className="font-bold text-slate-300 mb-2 flex items-center gap-2">
+                      <CheckCircle size={16} className="text-emerald-400"/> Puntos Fuertes
+                    </h4>
+                    <ul className="list-disc list-inside text-sm text-slate-400 space-y-1">
+                      {resultado.puntos_fuertes?.map((p: string, i: number) => <li key={i}>{p}</li>)}
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-[#1B4332]/30 rounded-xl border border-[#1B4332]">
+                    <h4 className="font-bold text-[#D8F3DC] mb-2 flex items-center gap-2">
+                      <TrendingUp size={16}/> Acción Prioritaria
+                    </h4>
+                    <p className="text-sm text-slate-300">{resultado.recomendacion_prioritaria}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
+
       </main>
+
+      {/* Footer Obligatorio Oficial de Marketing Amable (Pill Glassmorphism) */}
+      <footer className="w-full border-t border-white/10 py-6 mt-16 bg-[#0D0D0D]">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div>
+            &copy; {new Date().getFullYear()} <span className="text-slate-200 font-semibold">Auditor Épico</span> • Todos los derechos reservados.
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400">Diseñado con pasión por</span>
+            <a 
+              href="https://www.marketingamable.com/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/15 transition-all align-middle shadow-sm"
+            >
+              <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
+              <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
+              <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

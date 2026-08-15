@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0D0D0D;
+    --surface: #121212;
+    --brand-dark-green: #1B4332;
+    --brand-light-green: #D8F3DC;
+    --foreground: #FFFFFF;
+    --font-lexend: var(--font-lexend, 'Lexend', sans-serif);
+    --font-inter: var(--font-inter, 'Inter', sans-serif);
+  }
+
+  body {
+    background-color: #0D0D0D;
+    color: #FFFFFF;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading, .font-brand {
+    font-family: var(--font-lexend), sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Marketing Amable Brand Utilities */
+.bg-brand-bg { background-color: #0D0D0D; }
+.bg-brand-surface { background-color: #121212; }
+.bg-brand-forest { background-color: #1B4332; }
+.bg-brand-sustainable { background-color: #D8F3DC; }
+.text-brand-sustainable { color: #D8F3DC; }
+.border-brand-forest { border-color: #1B4332; }
+.border-brand-sustainable { border-color: #D8F3DC; }
+
+.footer-marketing-span {
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+.footer-amable-span {
+  color: #D8F3DC;
+  font-weight: 800;
 }
