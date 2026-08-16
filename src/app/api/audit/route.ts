@@ -516,8 +516,7 @@ Devuelve estrictamente un JSON válido con esta estructura:
   ]
 }`;
 
-    // 4. Llamada a Gemini con soporte de Imagen Multimodal
-    let response;
+    // 4. Preparación de contenido Gemini con soporte Multimodal
     let geminiContents: unknown = prompt;
     if (tipo_analisis === 'screenshot' && image_base64) {
       const cleanBase64 = image_base64.replace(/^data:image\/\w+;base64,/, '');
@@ -532,25 +531,39 @@ Devuelve estrictamente un JSON válido con esta estructura:
       ];
     }
 
-    try {
-      response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: geminiContents as string,
-        config: {
-          responseMimeType: 'application/json',
-          maxOutputTokens: 8192,
-        },
-      });
-    } catch (modelErr) {
-      console.warn('Fallback a gemini-flash-latest por error en 2.5-flash:', modelErr);
-      response = await ai.models.generateContent({
-        model: 'gemini-flash-latest',
-        contents: geminiContents as string,
-        config: {
-          responseMimeType: 'application/json',
-          maxOutputTokens: 8192,
-        },
-      });
+    // 4. Llamada a Gemini con cascada de modelos anti-503 (High Demand Fallback)
+    const candidateModels = [
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-2.5-flash',
+      'gemini-1.5-pro',
+    ];
+
+    let response;
+    let lastError: Error | null = null;
+
+    for (const model of candidateModels) {
+      try {
+        response = await ai.models.generateContent({
+          model,
+          contents: geminiContents as string,
+          config: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: 8192,
+          },
+        });
+        if (response && response.text) {
+          break; // Éxito con este modelo
+        }
+      } catch (err) {
+        lastError = err as Error;
+        console.warn(`Modelo ${model} en alta demanda o con error (503), saltando al siguiente modelo de respaldo...`, lastError.message);
+        await new Promise((res) => setTimeout(res, 300));
+      }
+    }
+
+    if (!response || !response.text) {
+      throw lastError || new Error('Los servidores de IA están en alta demanda temporal. Por favor reintenta en unos segundos.');
     }
 
     let cleanJson = response.text?.trim() || '{}';
