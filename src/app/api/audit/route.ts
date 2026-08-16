@@ -514,7 +514,12 @@ Devuelve estrictamente un JSON válido con esta estructura:
     { "fase": "FASE 4 (2 Semanas)", "accion": "Despliegue de tests A/B de Copywriting..." },
     { "fase": "FASE 5 (1 Mes)", "accion": "Integración de Lead Magnet interactivo de captación..." }
   ]
-}`;
+}
+
+REGLA CRÍTICA DE SINTAXIS JSON:
+1. Devuelve EXCLUSIVAMENTE el objeto JSON 100% válido y parseable.
+2. Si citas textos o títulos dentro de los valores de las cadenas, usa comillas simples ('...') o comillas angulares («...»), NUNCA comillas dobles sin escapar.
+3. No dejes comas sueltas al final de los arrays o propiedades.`;
 
     // 4. Preparación de contenido Gemini con soporte Multimodal
     let geminiContents: unknown = prompt;
@@ -549,7 +554,7 @@ Devuelve estrictamente un JSON válido con esta estructura:
           contents: geminiContents as string,
           config: {
             responseMimeType: 'application/json',
-            maxOutputTokens: 8192,
+            maxOutputTokens: 32768,
           },
         });
         if (response && response.text) {
@@ -566,25 +571,91 @@ Devuelve estrictamente un JSON válido con esta estructura:
       throw lastError || new Error('Los servidores de IA están en alta demanda temporal. Por favor reintenta en unos segundos.');
     }
 
-    let cleanJson = response.text?.trim() || '{}';
-    if (cleanJson.startsWith('```json')) {
-      cleanJson = cleanJson.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleanJson.startsWith('```')) {
-      cleanJson = cleanJson.replace(/^```\s*/, '').replace(/\s*```$/, '');
-    }
+    // Función de parser JSON ultra-resiliente anti-errores de LLM
+    const robustJsonParse = (raw: string): AuditResultPayload => {
+      let text = raw.trim();
 
-    let resultado: AuditResultPayload;
-    try {
-      resultado = JSON.parse(cleanJson) as AuditResultPayload;
-    } catch (parseError) {
-      console.warn('Primer intento de JSON.parse falló, intentando sanitizar regex...');
-      const match = cleanJson.match(/\{[\s\S]*\}/);
-      if (match) {
-        resultado = JSON.parse(match[0]) as AuditResultPayload;
-      } else {
-        throw parseError;
+      // 1. Quitar bloques de formato markdown
+      if (text.startsWith('```json')) {
+        text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (text.startsWith('```')) {
+        text = text.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-    }
+
+      // 2. Extraer límites de JSON válido
+      const firstBrace = text.indexOf('{');
+      const lastBrace = text.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        text = text.slice(firstBrace, lastBrace + 1);
+      }
+
+      // 3. Intento directo estándar
+      try {
+        return JSON.parse(text) as AuditResultPayload;
+      } catch {
+        // Continuar con proceso de reparación
+      }
+
+      // 4. Limpieza y reparación sintáctica
+      let repaired = text
+        // a. Quitar comas sobrantes antes de cierre de llaves o corchetes
+        .replace(/,\s*([\]\}])/g, '$1')
+        // b. Limpiar caracteres de control no escapados
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '');
+
+      try {
+        return JSON.parse(repaired) as AuditResultPayload;
+      } catch {
+        // Continuar con balanceo de llaves
+      }
+
+      // 5. Balanceo de llaves y corchetes abiertos en caso de truncamiento
+      let openBraces = 0;
+      let openBrackets = 0;
+      let inString = false;
+      let isEscaped = false;
+
+      for (let i = 0; i < repaired.length; i++) {
+        const ch = repaired[i];
+        if (isEscaped) {
+          isEscaped = false;
+          continue;
+        }
+        if (ch === '\\') {
+          isEscaped = true;
+          continue;
+        }
+        if (ch === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (ch === '{') openBraces++;
+          else if (ch === '}') openBraces = Math.max(0, openBraces - 1);
+          else if (ch === '[') openBrackets++;
+          else if (ch === ']') openBrackets = Math.max(0, openBrackets - 1);
+        }
+      }
+
+      if (inString) repaired += '"';
+      while (openBrackets > 0) {
+        repaired += ']';
+        openBrackets--;
+      }
+      while (openBraces > 0) {
+        repaired += '}';
+        openBraces--;
+      }
+
+      try {
+        return JSON.parse(repaired) as AuditResultPayload;
+      } catch (err) {
+        console.error('Error final en robustJsonParse:', err);
+        throw new Error('Error al interpretar el JSON generado por la IA. Por favor reintenta la auditoría.');
+      }
+    };
+
+    const resultado: AuditResultPayload = robustJsonParse(response.text);
 
     // 5. Guardar auditoría en Supabase si está configurado
     if (supabase) {
