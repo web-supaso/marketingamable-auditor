@@ -253,9 +253,14 @@ export default function Home() {
       .catch(() => {});
   };
 
-  const handleHtmlFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processHtmlFile = (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.html') && !file.name.toLowerCase().endsWith('.htm')) {
+      setError('Por favor, sube un archivo con extensión .html o .htm');
+      return;
+    }
+    setError('');
     setHtmlFileName(file.name);
     if (!url) setUrl(file.name.replace(/\.[^/.]+$/, ''));
     const reader = new FileReader();
@@ -265,11 +270,14 @@ export default function Home() {
     reader.readAsText(file);
   };
 
-  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processScreenshotFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, sube un archivo de imagen válido (PNG, JPG, WebP)');
+      return;
+    }
+    setError('');
     setScreenshotMime(file.type || 'image/png');
-    if (!url) setUrl(file.name.replace(/\.[^/.]+$/, ''));
+    if (!url) setUrl(file.name ? file.name.replace(/\.[^/.]+$/, '') : 'Captura de Pantalla');
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = (event.target?.result as string) || '';
@@ -278,6 +286,50 @@ export default function Home() {
     };
     reader.readAsDataURL(file);
   };
+
+  const handleHtmlFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processHtmlFile(file);
+  };
+
+  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processScreenshotFile(file);
+  };
+
+  const handleHtmlDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processHtmlFile(file);
+  };
+
+  const handleScreenshotDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processScreenshotFile(file);
+  };
+
+  useEffect(() => {
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            setInputMode('screenshot');
+            processScreenshotFile(file);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('paste', handleWindowPaste);
+    return () => window.removeEventListener('paste', handleWindowPaste);
+  }, []);
 
   const clearHtmlFile = () => {
     setHtmlFileName('');
@@ -594,31 +646,48 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
               {inputMode === 'html_file' && (
                 <>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                    Cargar Archivo index.html (Local / Desarrollo)
+                    Cargar Archivo index.html (Drag & Drop o Explorar)
                   </label>
                   {htmlFileName ? (
-                    <div className="flex items-center justify-between p-3 bg-[#0D0D0D] border border-emerald-500/30 rounded-xl">
-                      <div className="flex items-center gap-2.5 text-sm text-emerald-300 font-mono overflow-hidden">
-                        <FileCode size={18} className="shrink-0 text-[#D8F3DC]" />
-                        <span className="truncate">{htmlFileName}</span>
-                        <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded shrink-0">HTML Listo</span>
+                    <div className="flex items-center justify-between p-3.5 bg-[#0D0D0D] border border-emerald-500/40 rounded-xl">
+                      <div className="flex items-center gap-3 text-sm text-emerald-300 font-mono overflow-hidden">
+                        <div className="p-2 rounded-lg bg-[#1B4332] text-[#D8F3DC]">
+                          <FileCode size={20} />
+                        </div>
+                        <div className="truncate">
+                          <span className="font-semibold block truncate text-white">{htmlFileName}</span>
+                          <span className="text-[10px] text-emerald-400">Archivo HTML listo para auditar</span>
+                        </div>
                       </div>
                       <button
                         type="button"
                         onClick={clearHtmlFile}
-                        className="text-slate-400 hover:text-rose-400 p-1 transition cursor-pointer"
+                        className="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-white/5 transition cursor-pointer"
                         title="Eliminar archivo"
                       >
-                        <X size={16} />
+                        <X size={18} />
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center p-4 bg-[#0D0D0D] border-2 border-dashed border-white/15 hover:border-[#D8F3DC]/50 rounded-xl cursor-pointer transition group">
-                      <Upload size={22} className="text-slate-400 group-hover:text-[#D8F3DC] transition mb-1" />
-                      <span className="text-xs font-semibold text-slate-300 group-hover:text-white">
-                        Haz clic para seleccionar tu archivo <span className="text-[#D8F3DC]">index.html</span> o .htm
+                    <label 
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleHtmlDrop}
+                      className={`flex flex-col items-center justify-center p-6 bg-[#0D0D0D] border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 group ${
+                        isDragging 
+                          ? 'border-[#D8F3DC] bg-[#1B4332]/30 scale-[1.01] ring-2 ring-[#D8F3DC]/40' 
+                          : 'border-white/15 hover:border-[#D8F3DC]/60 hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="p-3 rounded-full bg-white/5 group-hover:bg-[#1B4332] text-slate-300 group-hover:text-[#D8F3DC] transition mb-2">
+                        <Upload size={24} />
+                      </div>
+                      <span className="text-sm font-bold text-slate-200 group-hover:text-[#D8F3DC] text-center">
+                        Arrastra y suelta aquí tu archivo <span className="underline decoration-[#D8F3DC]">index.html</span> o .htm
                       </span>
-                      <span className="text-[10px] text-slate-500 mt-0.5">Se procesará de forma segura directamente</span>
+                      <span className="text-xs text-slate-400 mt-1 text-center">
+                        o haz clic para buscarlo en tu ordenador
+                      </span>
                       <input 
                         type="file" 
                         accept=".html,.htm" 
@@ -633,37 +702,50 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
               {inputMode === 'screenshot' && (
                 <>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                    Captura de Pantalla / Screenshot (IA Vision)
+                    Captura de Pantalla (Drag & Drop, Explorar o Ctrl + V)
                   </label>
                   {screenshotPreview ? (
-                    <div className="flex items-center justify-between p-2.5 bg-[#0D0D0D] border border-emerald-500/30 rounded-xl">
+                    <div className="flex items-center justify-between p-3 bg-[#0D0D0D] border border-emerald-500/40 rounded-xl">
                       <div className="flex items-center gap-3 overflow-hidden">
                         <img 
                           src={screenshotPreview} 
-                          alt="Screenshot" 
-                          className="h-12 w-20 object-cover rounded-lg border border-white/10 shrink-0" 
+                          alt="Screenshot Preview" 
+                          className="h-14 w-24 object-cover rounded-lg border border-white/20 shrink-0 shadow-sm" 
                         />
                         <div className="text-xs truncate">
-                          <span className="text-emerald-300 font-semibold block truncate">Captura Cargada</span>
-                          <span className="text-[10px] text-slate-500 font-mono">Lista para análisis multimodal</span>
+                          <span className="text-white font-bold block truncate">Captura Cargada con Éxito</span>
+                          <span className="text-[11px] text-emerald-400 font-mono">Lista para análisis de IA Vision</span>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={clearScreenshot}
-                        className="text-slate-400 hover:text-rose-400 p-1.5 transition cursor-pointer"
+                        className="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-white/5 transition cursor-pointer"
                         title="Eliminar imagen"
                       >
-                        <X size={16} />
+                        <X size={18} />
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center p-4 bg-[#0D0D0D] border-2 border-dashed border-white/15 hover:border-[#D8F3DC]/50 rounded-xl cursor-pointer transition group">
-                      <Camera size={22} className="text-slate-400 group-hover:text-[#D8F3DC] transition mb-1" />
-                      <span className="text-xs font-semibold text-slate-300 group-hover:text-white">
-                        Sube una captura de la web (<span className="text-[#D8F3DC]">PNG, JPG, WebP</span>)
+                    <label 
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleScreenshotDrop}
+                      className={`flex flex-col items-center justify-center p-6 bg-[#0D0D0D] border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 group ${
+                        isDragging 
+                          ? 'border-[#D8F3DC] bg-[#1B4332]/30 scale-[1.01] ring-2 ring-[#D8F3DC]/40' 
+                          : 'border-white/15 hover:border-[#D8F3DC]/60 hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="p-3 rounded-full bg-white/5 group-hover:bg-[#1B4332] text-slate-300 group-hover:text-[#D8F3DC] transition mb-2">
+                        <Camera size={24} />
+                      </div>
+                      <span className="text-sm font-bold text-slate-200 group-hover:text-[#D8F3DC] text-center">
+                        Arrastra y suelta tu captura (<span className="text-[#D8F3DC]">PNG, JPG, WebP</span>)
                       </span>
-                      <span className="text-[10px] text-slate-500 mt-0.5">Gemini Vision evaluará contraste, CTAs y fugas visuales</span>
+                      <span className="text-xs text-slate-400 mt-1 text-center">
+                        o haz clic para explorar • <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-mono text-[10px]">Ctrl + V</kbd> para pegar directo
+                      </span>
                       <input 
                         type="file" 
                         accept="image/png,image/jpeg,image/jpg,image/webp" 
