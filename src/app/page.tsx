@@ -610,7 +610,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 - **Minuto 12 a 15 (Cierre de Presupuesto con ROI):** ${res.guion_llamada.min_12_15_cierre}
 
 ---
-` : ''}*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.09*
+` : ''}*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.10*
 `;
   };
 
@@ -670,40 +670,40 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
   // 2. Pantalla de Bloqueo / Login Intranet
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col justify-between font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#121212] p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
+      <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col justify-between font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D] py-2">
+        <div className="flex-1 flex items-center justify-center p-3">
+          <div className="max-w-sm w-full bg-[#121212] p-6 rounded-2xl border border-white/10 shadow-2xl space-y-4">
             
             <div className="text-center flex flex-col items-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[11px] font-bold uppercase tracking-wider mb-3">
-                <Image src="/002.gif" alt="Marketing Amable" width={18} height={18} className="h-4 w-auto" unoptimized />
+              <Image src="/002.gif" alt="Marketing Amable" width={56} height={56} className="h-12 w-auto mb-2 drop-shadow-md" unoptimized />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider mb-1.5">
                 <span>Intranet Privada</span>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 mb-2">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
                 <span className="text-2xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
                 <span className="text-2xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
               </div>
 
-              <h2 className="text-lg font-bold text-white">Auditor Comercial & Autoridad 360°</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Ingresa tu clave de acceso para desbloquear el generador de auditorías y prospección.
+              <h2 className="text-sm font-bold text-slate-200">Auditor Comercial & Autoridad 360°</h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Ingresa tu clave de acceso para desbloquear la suite.
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                   Clave de Acceso Intranet
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                    <Lock size={16} />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                    <Lock size={15} />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Escribe tu contraseña..."
-                    className="w-full pl-10 pr-10 py-3 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-sm"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-xs"
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     autoFocus
@@ -713,14 +713,14 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
 
               {loginError && (
-                <div className="p-3 bg-rose-950/60 border border-rose-800 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle size={14} className="shrink-0" />
+                <div className="p-2.5 bg-rose-950/60 border border-rose-800 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                  <AlertTriangle size={13} className="shrink-0" />
                   <span>{loginError}</span>
                 </div>
               )}
@@ -728,31 +728,31 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               <button
                 type="submit"
                 disabled={loginLoading || !passwordInput}
-                className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-3.5 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-sm cursor-pointer"
+                className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-xs cursor-pointer"
               >
                 {loginLoading ? (
                   <>
-                    <Loader2 className="animate-spin text-[#0D0D0D]" size={16} />
-                    <span>Verificando acceso...</span>
+                    <Loader2 className="animate-spin text-[#0D0D0D]" size={15} />
+                    <span>Verificando...</span>
                   </>
                 ) : (
                   <>
-                    <Lock size={16} />
+                    <Lock size={15} />
                     <span>Ingresar a la Intranet</span>
                   </>
                 )}
               </button>
             </form>
 
-            <div className="text-center text-[11px] text-slate-500">
+            <div className="text-center text-[10px] text-slate-500">
               Uso exclusivo para el equipo de Marketing Amable.
             </div>
           </div>
         </div>
 
         {/* Footer Oficial */}
-        <footer className="w-full border-t border-white/10 py-5 bg-[#0D0D0D]">
-          <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+        <footer className="w-full border-t border-white/10 py-3 bg-[#0D0D0D]">
+          <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
             <div>&copy; {new Date().getFullYear()} Marketing Amable. Todos los derechos reservados.</div>
             <div className="flex items-center gap-2">
               <span className="text-slate-400">Diseñado con pasión por</span>
@@ -760,13 +760,13 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                 href="https://www.marketingamable.com/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/15 transition-all align-middle shadow-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/80 hover:bg-black border border-white/15 transition-all align-middle shadow-sm"
               >
-                <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
+                <Image src="/002.gif" alt="Marketing Amable" width={18} height={18} className="h-4 w-auto" unoptimized />
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.09</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.10</span>
             </div>
           </div>
         </footer>
@@ -779,45 +779,47 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
     <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
       
       {/* Barra Superior de Sesión */}
-      <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2.5 flex items-center justify-between text-xs no-print">
+      <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2 flex items-center justify-between text-xs no-print">
         <div className="flex items-center gap-2 text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Sesión Activa en Intranet</span>
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-300 transition cursor-pointer px-2.5 py-1 rounded-lg hover:bg-white/5"
+          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-300 transition cursor-pointer px-2 py-0.5 rounded-lg hover:bg-white/5"
         >
           <LogOut size={13} />
           <span>Cerrar Sesión</span>
         </button>
       </div>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto p-3 md:p-6">
         
         {/* Header Hero Branding Oficial */}
-        <header className="mb-10 text-center flex flex-col items-center no-print">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
-            <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
+        <header className="mb-5 text-center flex flex-col items-center no-print">
+          <div className="flex items-center justify-center gap-3 mb-1.5">
+            <Image src="/002.gif" alt="Marketing Amable" width={48} height={48} className="h-10 md:h-12 w-auto drop-shadow-md" unoptimized />
+            <div className="flex items-center gap-1.5">
+              <span className="text-2xl md:text-4xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
+              <span className="text-2xl md:text-4xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider mb-2 shadow-sm">
             <span>Auditor Comercial & Autoridad 360°</span>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <span className="text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
-            <span className="text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
-          </div>
-
-          <h1 className="text-xl md:text-2xl font-bold text-slate-300 tracking-normal mb-3 max-w-xl">
+          <h1 className="text-base md:text-xl font-bold text-slate-200 tracking-normal mb-1.5 max-w-xl">
             Diagnóstico de <span className="text-[#D8F3DC] underline decoration-[#1B4332] underline-offset-4">Fugas de Dinero & Conversión</span>
           </h1>
 
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto">
+          <p className="text-slate-400 text-xs md:text-sm max-w-xl mx-auto leading-relaxed">
             Convierte datos técnicos y legales en argumentos de venta letales: de WhatsApp y Cold Email al cierre de presupuestos de consultoría.
           </p>
         </header>
 
         {/* Formulario de Entrada */}
-        <div className="bg-[#121212] p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 mb-8 no-print">
+        <div className="bg-[#121212] p-5 md:p-6 rounded-2xl shadow-2xl border border-white/10 mb-6 no-print">
           
           {/* Selector de Modo de Análisis (3 Opciones) */}
           <div className="mb-6">
@@ -2003,13 +2005,13 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
         {/* 🖥️ MODAL DE MODO PRESENTACIÓN INTERACTIVO (SLIDES PARA ZOOM / GOOGLE MEET) */}
         {/* ========================================================================= */}
         {showPresentation && resultado && (
-          <div className="fixed inset-0 z-50 bg-[#0D0D0D]/95 backdrop-blur-md flex flex-col justify-between p-6 md:p-12 text-white no-print">
+          <div className="fixed inset-0 z-50 bg-[#0D0D0D]/98 backdrop-blur-md flex flex-col justify-between p-3 md:p-6 text-white no-print h-screen overflow-hidden">
             
-            {/* Header de la Presentación */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <Image src="/002.gif" alt="Marketing Amable" width={28} height={28} className="h-7 w-auto" unoptimized />
-                <span className="font-extrabold text-sm tracking-wider text-white">
+            {/* Header Fijo de la Presentación */}
+            <div className="shrink-0 flex items-center justify-between border-b border-white/10 pb-2.5">
+              <div className="flex items-center gap-2.5">
+                <Image src="/002.gif" alt="Marketing Amable" width={24} height={24} className="h-6 w-auto" unoptimized />
+                <span className="font-extrabold text-xs md:text-sm tracking-wider text-white">
                   MARKETING <span className="text-[#D8F3DC]">AMABLE</span> • Presentación Ejecutiva 360°
                 </span>
               </div>
@@ -2018,40 +2020,40 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                 <span className="text-xs text-slate-400 font-mono">Diapositiva {presentationSlide + 1} de 5</span>
                 <button
                   onClick={() => setShowPresentation(false)}
-                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
                   title="Cerrar presentación"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
             </div>
 
-            {/* Contenido Dinámico de la Slide */}
-            <div className="my-auto max-w-4xl mx-auto w-full py-6">
+            {/* Contenido Dinámico de la Slide con Scroll Seguro si la pantalla es pequeña */}
+            <div className="flex-1 w-full max-w-4xl mx-auto overflow-y-auto my-auto py-2 px-2 flex flex-col justify-center">
               
               {/* Slide 0: Portada & Diagnóstico */}
               {presentationSlide === 0 && (
-                <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332] text-[#D8F3DC] text-xs font-bold uppercase tracking-wider">
+                <div className="space-y-4 text-center animate-in fade-in zoom-in-95 duration-200">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider">
                     Diagnóstico de Autoridad Digital & Conversión
                   </div>
-                  <h1 className="text-4xl md:text-5xl font-black text-white">{resultado.url}</h1>
-                  <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">{resultado.resumen_ejecutivo}</p>
+                  <h1 className="text-2xl md:text-4xl font-black text-white">{resultado.url}</h1>
+                  <p className="text-xs md:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">{resultado.resumen_ejecutivo}</p>
 
-                  <div className="flex justify-center items-center gap-6 pt-4">
-                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
-                      <div className="text-xs text-slate-400 uppercase font-bold">Puntuación Global</div>
-                      <div className="text-4xl font-black text-[#D8F3DC] mt-1">{resultado.puntuacion_global}/100</div>
+                  <div className="flex justify-center items-center gap-4 pt-1">
+                    <div className="p-3.5 bg-[#121212] border border-white/10 rounded-xl min-w-[140px]">
+                      <div className="text-[10px] text-slate-400 uppercase font-bold">Puntuación Global</div>
+                      <div className="text-2xl font-black text-[#D8F3DC] mt-0.5">{resultado.puntuacion_global}/100</div>
                     </div>
-                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
-                      <div className="text-xs text-slate-400 uppercase font-bold">Nota de Autoridad</div>
-                      <div className="text-4xl font-black text-emerald-400 mt-1">{resultado.nota_autoridad || '3.5 / 10'}</div>
+                    <div className="p-3.5 bg-[#121212] border border-white/10 rounded-xl min-w-[140px]">
+                      <div className="text-[10px] text-slate-400 uppercase font-bold">Nota de Autoridad</div>
+                      <div className="text-2xl font-black text-emerald-400 mt-0.5">{resultado.nota_autoridad || '3.5 / 10'}</div>
                     </div>
                   </div>
 
                   {resultado.elephant_in_the_room && (
-                    <div className="p-5 bg-rose-950/40 border border-rose-900/60 rounded-xl text-left max-w-2xl mx-auto">
-                      <span className="text-xs font-bold uppercase text-rose-400 block mb-1">🐘 The Elephant in the Room:</span>
+                    <div className="p-3.5 bg-rose-950/40 border border-rose-900/60 rounded-xl text-left max-w-xl mx-auto">
+                      <span className="text-[11px] font-bold uppercase text-rose-400 block mb-0.5">🐘 The Elephant in the Room:</span>
                       <p className="text-xs text-slate-200 leading-relaxed">{resultado.elephant_in_the_room}</p>
                     </div>
                   )}
@@ -2060,28 +2062,28 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 
               {/* Slide 1: Pérdidas Financieras Ocultas */}
               {presentationSlide === 1 && (
-                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
                   <div className="text-center">
-                    <span className="text-xs font-bold uppercase text-rose-400 tracking-wider">Fuga Financiera Detectada</span>
-                    <h2 className="text-3xl md:text-4xl font-black text-white mt-1">El Coste de la Fricción Digital</h2>
+                    <span className="text-[10px] font-bold uppercase text-rose-400 tracking-wider">Fuga Financiera Detectada</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-white mt-0.5">El Coste de la Fricción Digital</h2>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="p-6 bg-rose-950/30 border border-rose-900/60 rounded-2xl text-center space-y-2">
-                      <span className="text-xs font-bold uppercase text-rose-400">Pérdida Estimada al Mes</span>
-                      <div className="text-4xl font-black text-rose-300">{resultado.calculadora_perdidas?.perdida_estimada_mensual || '$1,850 / mes'}</div>
-                      <p className="text-xs text-slate-400">Por rebote móvil, lentitud y falta de canal inmediato.</p>
+                  <div className="grid md:grid-cols-2 gap-3.5">
+                    <div className="p-4 bg-rose-950/30 border border-rose-900/60 rounded-xl text-center space-y-1">
+                      <span className="text-[11px] font-bold uppercase text-rose-400">Pérdida Estimada al Mes</span>
+                      <div className="text-3xl font-black text-rose-300">{resultado.calculadora_perdidas?.perdida_estimada_mensual || '$1,850 / mes'}</div>
+                      <p className="text-[11px] text-slate-400">Por rebote móvil, lentitud y falta de canal inmediato.</p>
                     </div>
-                    <div className="p-6 bg-amber-950/30 border border-amber-900/60 rounded-2xl text-center space-y-2">
-                      <span className="text-xs font-bold uppercase text-amber-400">Pérdida Anual Acumulada</span>
-                      <div className="text-4xl font-black text-amber-300">{resultado.calculadora_perdidas?.impacto_anual || '$22,200 / año'}</div>
-                      <p className="text-xs text-slate-400">Capital que se transfiere silenciosamente a la competencia.</p>
+                    <div className="p-4 bg-amber-950/30 border border-amber-900/60 rounded-xl text-center space-y-1">
+                      <span className="text-[11px] font-bold uppercase text-amber-400">Pérdida Anual Acumulada</span>
+                      <div className="text-3xl font-black text-amber-300">{resultado.calculadora_perdidas?.impacto_anual || '$22,200 / año'}</div>
+                      <p className="text-[11px] text-slate-400">Capital que se transfiere silenciosamente a la competencia.</p>
                     </div>
                   </div>
 
                   {resultado.calculadora_perdidas?.motivos_fuga && (
-                    <div className="p-5 bg-[#121212] rounded-xl border border-white/10 space-y-2">
-                      <span className="text-xs font-bold uppercase text-[#D8F3DC] block">Cuellos de Botella Detectados:</span>
+                    <div className="p-3.5 bg-[#121212] rounded-xl border border-white/10 space-y-1.5">
+                      <span className="text-[11px] font-bold uppercase text-[#D8F3DC] block">Cuellos de Botella Detectados:</span>
                       {resultado.calculadora_perdidas.motivos_fuga.map((m: string, i: number) => (
                         <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
                           <XCircle size={14} className="text-rose-400 shrink-0" />
@@ -2095,18 +2097,18 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 
               {/* Slide 2: Matriz GAP 5.0 */}
               {presentationSlide === 2 && (
-                <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
                   <div className="text-center">
-                    <span className="text-xs font-bold uppercase text-[#D8F3DC] tracking-wider">Metodología de Élite</span>
-                    <h2 className="text-3xl font-black text-white mt-1">Matriz GAP de Transformación en 5 Capas</h2>
+                    <span className="text-[10px] font-bold uppercase text-[#D8F3DC] tracking-wider">Metodología de Élite</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-white mt-0.5">Matriz GAP de Transformación en 5 Capas</h2>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {resultado.matriz_gap?.map((row: GapRow, i: number) => (
-                      <div key={i} className="p-4 bg-[#121212] border border-white/10 rounded-xl flex justify-between items-center gap-4 text-xs">
+                      <div key={i} className="p-2.5 bg-[#121212] border border-white/10 rounded-xl flex justify-between items-center gap-3 text-xs">
                         <div className="w-1/4 font-bold text-[#D8F3DC]">{row.capa}</div>
-                        <div className="w-2/4 text-slate-300">{row.hallazgo || row.hallazgo_critico}</div>
-                        <div className="w-1/4 text-right text-emerald-400 font-semibold">{row.solucion || row.solucion_propuesta}</div>
+                        <div className="w-2/4 text-slate-300 text-[11px]">{row.hallazgo || row.hallazgo_critico}</div>
+                        <div className="w-1/4 text-right text-emerald-400 font-semibold text-[11px]">{row.solucion || row.solucion_propuesta}</div>
                       </div>
                     ))}
                   </div>
@@ -2115,28 +2117,28 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 
               {/* Slide 3: Testing A/B & Lead Magnet */}
               {presentationSlide === 3 && (
-                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                <div className="space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
                   <div className="text-center">
-                    <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">Estrategia de Captación Inmediata</span>
-                    <h2 className="text-3xl font-black text-white mt-1">Widget Interactivo & Tests A/B</h2>
+                    <span className="text-[10px] font-bold uppercase text-emerald-400 tracking-wider">Estrategia de Captación Inmediata</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-white mt-0.5">Widget Interactivo & Tests A/B</h2>
                   </div>
 
                   {resultado.lead_magnet_tecnico && (
-                    <div className="p-6 bg-[#121212] border border-[#1B4332] rounded-2xl space-y-3">
-                      <span className="text-xs font-bold uppercase text-[#D8F3DC]">Propuesta de Herramienta Exclusiva:</span>
-                      <h3 className="text-2xl font-black text-white">&ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;</h3>
+                    <div className="p-4 bg-[#121212] border border-[#1B4332] rounded-xl space-y-1.5">
+                      <span className="text-[10px] font-bold uppercase text-[#D8F3DC]">Propuesta de Herramienta Exclusiva:</span>
+                      <h3 className="text-lg font-black text-white">&ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;</h3>
                       <p className="text-xs text-slate-300">{resultado.lead_magnet_tecnico.descripcion}</p>
-                      <div className="p-3 bg-[#0D0D0D] rounded-xl border border-white/10 text-xs text-emerald-400">
+                      <div className="p-2 bg-[#0D0D0D] rounded-lg border border-white/10 text-xs text-emerald-400">
                         <strong>Impacto:</strong> {resultado.lead_magnet_tecnico.impacto_captacion}
                       </div>
                     </div>
                   )}
 
                   {resultado.experimentos_ab && resultado.experimentos_ab[0] && (
-                    <div className="p-4 bg-[#121212] border border-white/10 rounded-xl text-xs space-y-2">
-                      <div className="font-bold text-white">Test A/B Prioritario: {resultado.experimentos_ab[0].nombre}</div>
-                      <div className="text-slate-400">{resultado.experimentos_ab[0].hipotesis}</div>
-                      <div className="text-emerald-400 font-bold">Métrica esperada: {resultado.experimentos_ab[0].metrica_exito}</div>
+                    <div className="p-3 bg-[#121212] border border-white/10 rounded-xl text-xs space-y-1">
+                      <div className="font-bold text-white text-xs">Test A/B Prioritario: {resultado.experimentos_ab[0].nombre}</div>
+                      <div className="text-slate-400 text-[11px]">{resultado.experimentos_ab[0].hipotesis}</div>
+                      <div className="text-emerald-400 font-bold text-[11px]">Métrica esperada: {resultado.experimentos_ab[0].metrica_exito}</div>
                     </div>
                   )}
                 </div>
@@ -2144,33 +2146,33 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 
               {/* Slide 4: Proyección ROI & Roadmap */}
               {presentationSlide === 4 && (
-                <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
+                <div className="space-y-4 text-center animate-in fade-in zoom-in-95 duration-200">
                   <div>
-                    <span className="text-xs font-bold uppercase text-[#D8F3DC] tracking-wider">Retorno de Inversión</span>
-                    <h2 className="text-3xl md:text-4xl font-black text-white mt-1">Proyección de Crecimiento</h2>
+                    <span className="text-[10px] font-bold uppercase text-[#D8F3DC] tracking-wider">Retorno de Inversión</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-white mt-0.5">Proyección de Crecimiento</h2>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
-                      <span className="text-xs font-bold text-slate-400 block uppercase">Conservador</span>
-                      <div className="text-2xl font-black text-slate-200 mt-1">{resultado.proyeccion_roi?.escenario_pesimista}</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3.5 bg-[#121212] border border-white/10 rounded-xl">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">Conservador</span>
+                      <div className="text-xl font-black text-slate-200 mt-0.5">{resultado.proyeccion_roi?.escenario_pesimista}</div>
                     </div>
-                    <div className="p-5 bg-[#1B4332] border border-[#D8F3DC]/30 rounded-2xl">
-                      <span className="text-xs font-bold text-[#D8F3DC] block uppercase">Realista</span>
-                      <div className="text-2xl font-black text-[#D8F3DC] mt-1">{resultado.proyeccion_roi?.escenario_realista}</div>
+                    <div className="p-3.5 bg-[#1B4332] border border-[#D8F3DC]/30 rounded-xl">
+                      <span className="text-[10px] font-bold text-[#D8F3DC] block uppercase">Realista</span>
+                      <div className="text-xl font-black text-[#D8F3DC] mt-0.5">{resultado.proyeccion_roi?.escenario_realista}</div>
                     </div>
-                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
-                      <span className="text-xs font-bold text-emerald-400 block uppercase">Optimista</span>
-                      <div className="text-2xl font-black text-emerald-300 mt-1">{resultado.proyeccion_roi?.escenario_optimista}</div>
+                    <div className="p-3.5 bg-[#121212] border border-white/10 rounded-xl">
+                      <span className="text-[10px] font-bold text-emerald-400 block uppercase">Optimista</span>
+                      <div className="text-xl font-black text-emerald-300 mt-0.5">{resultado.proyeccion_roi?.escenario_optimista}</div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-300 italic max-w-xl mx-auto">&ldquo;{resultado.proyeccion_roi?.conclusion}&rdquo;</p>
+                  <p className="text-xs text-slate-300 italic max-w-lg mx-auto">&ldquo;{resultado.proyeccion_roi?.conclusion}&rdquo;</p>
                   
-                  <div className="pt-2">
+                  <div className="pt-1">
                     <button
                       onClick={() => setShowPresentation(false)}
-                      className="bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold px-6 py-3 rounded-xl transition text-sm cursor-pointer shadow-lg shadow-[#D8F3DC]/20"
+                      className="bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold px-5 py-2.5 rounded-xl transition text-xs cursor-pointer shadow-md shadow-[#D8F3DC]/20"
                     >
                       Cerrar Presentación y Ver Detalles
                     </button>
@@ -2180,12 +2182,12 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 
             </div>
 
-            {/* Footer y Controles de la Presentación */}
-            <div className="flex items-center justify-between border-t border-white/10 pt-4">
+            {/* Footer Fijo y Controles de Navegación de Diapositivas (SIEMPRE VISIBLE) */}
+            <div className="shrink-0 flex items-center justify-between border-t border-white/10 pt-2.5 bg-[#0D0D0D]">
               <button
                 disabled={presentationSlide === 0}
                 onClick={() => setPresentationSlide(prev => Math.max(0, prev - 1))}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ChevronLeft size={16} />
                 <span>Anterior</span>
@@ -2199,6 +2201,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                     className={`w-2.5 h-2.5 rounded-full transition cursor-pointer ${
                       presentationSlide === idx ? 'bg-[#D8F3DC] scale-125' : 'bg-white/20 hover:bg-white/40'
                     }`}
+                    title={`Diapositiva ${idx + 1}`}
                   />
                 ))}
               </div>
@@ -2206,7 +2209,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               <button
                 disabled={presentationSlide === 4}
                 onClick={() => setPresentationSlide(prev => Math.min(4, prev + 1))}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] text-xs font-black transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-sm"
               >
                 <span>Siguiente</span>
                 <ChevronRight size={16} />
@@ -2237,7 +2240,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               </div>
               <div className="text-right text-[11px] text-slate-600">
                 <div><strong>Fecha:</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                <div><strong>Versión:</strong> v.09</div>
+                <div><strong>Versión:</strong> v.10</div>
               </div>
             </div>
 
@@ -2576,7 +2579,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
             {/* Pie de Página Oficial en PDF */}
             <div className="border-t-2 border-[#1B4332] pt-3 flex items-center justify-between text-[10px] text-slate-500">
               <div>© {new Date().getFullYear()} Marketing Amable • Todos los derechos reservados.</div>
-              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.09</span></div>
+              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.10</span></div>
             </div>
 
           </div>
@@ -2585,7 +2588,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
       </main>
 
       {/* Footer Obligatorio Oficial de Marketing Amable (Pill Glassmorphism) */}
-      <footer className="w-full border-t border-white/10 py-6 mt-16 bg-[#0D0D0D] no-print">
+      <footer className="w-full border-t border-white/10 py-4 mt-8 bg-[#0D0D0D] no-print">
         <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
             &copy; {new Date().getFullYear()} <span className="text-slate-200 font-semibold">Auditor Épico</span> • Todos los derechos reservados.
@@ -2603,7 +2606,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.09</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.10</span>
           </div>
         </div>
       </footer>
