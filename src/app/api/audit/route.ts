@@ -45,6 +45,24 @@ export interface ColdEmail {
   cuerpo_aida: string;
   cuerpo_pas: string;
   llamada_a_la_accion: string;
+  email_seguimiento_48h?: {
+    asunto: string;
+    cuerpo: string;
+  };
+  protocolo_antiban_whatsapp?: string;
+}
+
+export interface CalculadoraPerdidas {
+  perdida_estimada_mensual: string;
+  impacto_anual: string;
+  motivos_fuga: string[];
+}
+
+export interface GuionLlamada15Min {
+  min_0_3_apertura: string;
+  min_3_8_demostracion: string;
+  min_8_12_solucion: string;
+  min_12_15_cierre: string;
 }
 
 export interface RgpdInfraccion {
@@ -93,6 +111,8 @@ interface AuditResultPayload {
   elephant_in_the_room?: string;
   pitch_whatsapp?: string;
   cold_email?: ColdEmail;
+  calculadora_perdidas?: CalculadoraPerdidas;
+  guion_llamada?: GuionLlamada15Min;
   fugas_de_dinero?: FugaDinero[];
   rgpd_audit?: RgpdAudit;
   matriz_gap?: GapRow[];
@@ -392,16 +412,22 @@ export async function POST(req: NextRequest) {
     const prompt = `Eres un consultor de máxima autoridad en CRO (Conversión), Transformación Digital 360°, Compliance Legal Web (RGPD / AEPD / CNIL) y Estrategia Comercial de Alto Valor (Nivel McKinsey / NEXUS 5.0).
 Tu misión es analizar la presencia digital de esta empresa con los datos técnicos, visuales y legales proporcionados y generar un ENTREGABLE DE CONSULTORÍA DE MÁXIMO NIVEL:
 1. PITCH DE VENTA RÁPIDO (WhatsApp / Outreach): Directo, educado, sin tecnicismos abrumadores, enfocado en abrir la conversación ofreciendo resolver el problema crítico en menos de 24h.
-2. GENERADOR DE COLD EMAIL B2B: 3 asuntos con alta tasa de apertura (curiosidad, sin palabras de spam), plantilla con estructura AIDA y plantilla con estructura PAS con llamada a la acción suave (Soft CTA).
-3. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS 5.0): Matriz GAP de 5 capas de élite (Privacidad, CRO Fogg B=MAP, GEO/LLMs, Neuro-UI Ley de Miller, Eco-Performance WPO), Proyección Financiera de ROI en $, Schema JSON-LD con Entidades y Wikidata IDs, 2 Experimentos A/B Validables, y 1 Propuesta de Lead Magnet Técnico Interactivo ("Widget de Amabilidad Digital") en Vanilla JS < 4KB.
-4. MÓDULO LEGAL RGPD & SANCIONES AEPD: Diagnóstico riguroso de riesgos de sanción (1.500€ a 30.000€+), artículos vulnerados y gancho de urgencia comercial.
+2. ESTRATEGIA DE PROSPECCIÓN SEGURA & COLD EMAIL (Sin riesgo de bloqueo de WhatsApp):
+   - 3 asuntos con alta tasa de apertura (curiosidad, sin palabras de spam).
+   - Plantilla con estructura AIDA y plantilla con estructura PAS con llamada a la acción suave (Soft CTA) invitando a responder o solicitar llamada breve.
+   - Email de Seguimiento a las 48h con un hallazgo técnico adicional de alto valor.
+   - Protocolo Anti-Ban WhatsApp: El texto exacto para pedirle al cliente que nos agregue a su libreta de contactos antes de interactuar por WhatsApp, protegiendo 100% la cuenta de WhatsApp Business contra reportes de spam.
+3. CALCULADORA DE DINERO PERDIDO AL MES (Fuga Financiera Oculta): Cálculo monetario mensual y anual realista de lo que el cliente pierde por los fallos detectados.
+4. GUIÓN DE LLAMADA / VIDEOLLAMADA CONSULTIVA DE 15 MINUTOS: Estructura exacta minuto a minuto (0-3 min Apertura, 3-8 min Diagnóstico sin culpas, 8-12 min Solución Amable, 12-15 min Cierre con ROI).
+5. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS 5.0): Matriz GAP de 5 capas de élite (Privacidad, CRO Fogg B=MAP, GEO/LLMs, Neuro-UI Ley de Miller, Eco-Performance WPO), Proyección Financiera de ROI en $, Schema JSON-LD con Entidades y Wikidata IDs, 2 Experimentos A/B Validables, y 1 Propuesta de Lead Magnet Técnico Interactivo ("Widget de Amabilidad Digital") en Vanilla JS < 4KB.
+6. MÓDULO LEGAL RGPD & SANCIONES AEPD: Diagnóstico riguroso de riesgos de sanción (1.500€ a 30.000€+), artículos vulnerados y gancho de urgencia comercial.
 
 DATOS DEL ANÁLISIS:
 ${webAnalysisData}
 
 INSTRUCCIONES CLAVE DE CALIDAD:
 - Sé implacable y honesto con la nota (0-100 y nota sobre 10).
-- "The Elephant in the Room": Identifica con precisión quirúrgica el fallo estratégico o técnico oculto más grave que frena el negocio (ej: trampa de traducción por JS que ciega a Googlebot/IAs, bloqueo de renderizado por fuentes/iconos externos, ausencia de CTAs segmentados para B2B vs familias, o riesgo sancionador crítico).
+- "The Elephant in the Room": Identifica con precisión quirúrgica el fallo estratégico o técnico oculto más grave que frena el negocio.
 - En la Matriz GAP cubre las 5 capas de élite con hallazgo, impacto técnico, impacto en negocio ($) y solución.
 - En GEO (SEO para IAs), genera entidades semánticas con sus IDs de Wikidata si corresponden, frase exacta de citabilidad para rastreadores LLM y código JSON-LD completo.
 - En Experimentos A/B, formula 2 hipótesis de testing validables con Variables A y B y métrica de éxito estimada.
@@ -413,14 +439,34 @@ Devuelve estrictamente un JSON válido con esta estructura:
   "nota_autoridad": "X.X / 10",
   "resumen_ejecutivo": "1 o 2 frases contundentes sobre el estado de la web.",
   "elephant_in_the_room": "Explicación del error crítico de negocio y diseño que destruye la credibilidad o visibilidad del cliente.",
-  "pitch_whatsapp": "Texto completo y persuasivo listo para copiar y pegar en WhatsApp/Email.",
+  "pitch_whatsapp": "Texto completo y persuasivo listo para cuando el cliente ya nos haya agendado en su teléfono.",
   "cold_email": {
     "asunto_1": "Asunto de alta apertura 1 (Intriga / Curiosidad)",
     "asunto_2": "Asunto de alta apertura 2 (Impacto en Negocio / Pérdida de clientes)",
     "asunto_3": "Asunto de alta apertura 3 (Personalizado con Nombre/URL)",
-    "cuerpo_aida": "Texto completo del email estructurado en AIDA...",
-    "cuerpo_pas": "Texto completo del email estructurado en PAS...",
-    "llamada_a_la_accion": "¿Tendría sentido que les envíe un breve vídeo de 2 minutos mostrándolo o prefieren revisarlo en una llamada rápida esta semana?"
+    "cuerpo_aida": "Texto completo del email de primer contacto estructurado en AIDA...",
+    "cuerpo_pas": "Texto completo del email de primer contacto estructurado en PAS...",
+    "llamada_a_la_accion": "¿Tendría sentido que les envíe un breve vídeo de 2 minutos mostrándolo o prefieren revisarlo en una llamada rápida de 10 minutos esta semana?",
+    "email_seguimiento_48h": {
+      "asunto": "Re: [Nombre Empresa] - Detalle adicional sobre la auditoría",
+      "cuerpo": "Texto del email de seguimiento a las 48h aportando valor adicional sin presionar..."
+    },
+    "protocolo_antiban_whatsapp": "¡Hola [Nombre]! Para poder compartirte los documentos interactivos y capturas del diagnóstico por WhatsApp sin que el sistema bloquee los enlaces por seguridad, por favor añade nuestro contacto a tu agenda telefónica. En cuanto nos tengas guardados, te paso el acceso directo."
+  },
+  "calculadora_perdidas": {
+    "perdida_estimada_mensual": "ej: $1,850 / mes",
+    "impacto_anual": "ej: $22,200 / año",
+    "motivos_fuga": [
+      "Fuga por lentitud y fricción en móviles (rebote del tráfico)",
+      "Pérdida de clientes que buscan contacto inmediato por WhatsApp/teléfono",
+      "Invisibilidad en el mercado en otros idiomas por traducción en JS"
+    ]
+  },
+  "guion_llamada": {
+    "min_0_3_apertura": "Apertura empática, agradecimiento por el tiempo y validación del excelente concepto del negocio, introduciendo con delicadeza el elefante en la habitación...",
+    "min_3_8_demostracion": "Exposición de las 3 fugas de dinero principales demostrando que no es un fallo de su servicio sino de la infraestructura digital...",
+    "min_8_12_solucion": "Presentación del plan de amabilidad digital: blindaje legal, WPO, rutas estáticas y widget interactivo...",
+    "min_12_15_cierre": "Presentación del ROI proyectado, respuesta a objeciones y acuerdo para iniciar la Fase 1 en 48 horas."
   },
   "rgpd_audit": {
     "nivel_riesgo": "Crítico" | "Alto" | "Medio" | "Bajo",

@@ -33,7 +33,13 @@ import {
   X,
   Image as ImageIcon,
   Printer,
-  Download
+  Download,
+  PhoneCall,
+  Presentation,
+  ChevronLeft,
+  ChevronRight,
+  Calculator,
+  ShieldCheck
 } from 'lucide-react';
 
 interface GapRow {
@@ -78,6 +84,24 @@ export interface ColdEmail {
   cuerpo_aida: string;
   cuerpo_pas: string;
   llamada_a_la_accion: string;
+  email_seguimiento_48h?: {
+    asunto: string;
+    cuerpo: string;
+  };
+  protocolo_antiban_whatsapp?: string;
+}
+
+export interface CalculadoraPerdidas {
+  perdida_estimada_mensual: string;
+  impacto_anual: string;
+  motivos_fuga: string[];
+}
+
+export interface GuionLlamada15Min {
+  min_0_3_apertura: string;
+  min_3_8_demostracion: string;
+  min_8_12_solucion: string;
+  min_12_15_cierre: string;
 }
 
 export interface RgpdInfraccion {
@@ -130,6 +154,8 @@ interface AuditResult {
   elephant_in_the_room?: string;
   pitch_whatsapp?: string;
   cold_email?: ColdEmail;
+  calculadora_perdidas?: CalculadoraPerdidas;
+  guion_llamada?: GuionLlamada15Min;
   fugas_de_dinero?: FugaDinero[];
   rgpd_audit?: RgpdAudit;
   matriz_gap?: GapRow[];
@@ -193,8 +219,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<AuditResult | null>(null);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'outreach' | 'nexus' | 'rgpd' | 'fugas'>('outreach');
-  const [outreachMode, setOutreachMode] = useState<'whatsapp' | 'email'>('whatsapp');
+  const [activeTab, setActiveTab] = useState<'outreach' | 'perdidas' | 'guion' | 'nexus' | 'growth' | 'rgpd'>('outreach');
+  const [outreachSubTab, setOutreachSubTab] = useState<'email_1' | 'email_2' | 'antiban' | 'whatsapp'>('email_1');
+  const [showPresentation, setShowPresentation] = useState(false);
+  const [presentationSlide, setPresentationSlide] = useState(0);
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [historial, setHistorial] = useState<AuditResult[]>([]);
 
@@ -473,41 +501,57 @@ ${res.rgpd_audit?.infracciones && res.rgpd_audit.infracciones.length > 0 ? `### 
 
 ---
 
-## 💬 3. ARGUMENTARIOS DE PROSPECCIÓN & OUTREACH COMERCIAL
+## 📉 3. CALCULADORA DE DINERO PERDIDO AL MES (Fuga Financiera Oculta)
+- **Pérdida Mensual Estimada:** ${res.calculadora_perdidas?.perdida_estimada_mensual || 'N/A'}
+- **Impacto Anual Proyectado:** ${res.calculadora_perdidas?.impacto_anual || 'N/A'}
+${res.calculadora_perdidas?.motivos_fuga && res.calculadora_perdidas.motivos_fuga.length > 0 ? `### Motivos Principales de Fuga:\n` + res.calculadora_perdidas.motivos_fuga.map((m, i) => `${i + 1}. ${m}`).join('\n') : ''}
 
-### A. Pitch Rápido de WhatsApp / Mensaje Directo:
-\`\`\`text
-${res.pitch_whatsapp || ''}
-\`\`\`
+---
 
-### B. Generador de Cold Emails B2B:
+## 🛡️ 4. ESTRATEGIA DE PROSPECCIÓN SEGURA & COLD EMAILS (ANTI-BAN WHATSAPP)
+
+### A. Secuencia de Cold Emails (Contacto Seguro por Correo):
 - **Asunto 1 (Intriga):** ${res.cold_email?.asunto_1 || ''}
 - **Asunto 2 (Negocio):** ${res.cold_email?.asunto_2 || ''}
 - **Asunto 3 (Personalizado):** ${res.cold_email?.asunto_3 || ''}
 
-#### Plantilla AIDA (Atención, Interés, Deseo, Acción):
+#### Email 1 (Estructura AIDA):
 ${res.cold_email?.cuerpo_aida || ''}
 
-#### Plantilla PAS (Problema, Agitación, Solución):
+#### Email 1 Alternativo (Estructura PAS):
 ${res.cold_email?.cuerpo_pas || ''}
 
 - **Llamada a la Acción (Soft CTA):** ${res.cold_email?.llamada_a_la_accion || ''}
 
+${res.cold_email?.email_seguimiento_48h ? `#### Email 2 (Seguimiento Amable a las 48h):
+**Asunto:** ${res.cold_email.email_seguimiento_48h.asunto}
+${res.cold_email.email_seguimiento_48h.cuerpo}\n` : ''}
+### B. Protocolo de Transición Segura a WhatsApp ("Agéndanos"):
+> ⚠️ **Nota de Seguridad Anti-Ban:** Para evitar suspensiones de WhatsApp Business, solicita al prospecto que guarde tu contacto en su agenda antes de enviarle archivos o notas de voz.
+\`\`\`text
+${res.cold_email?.protocolo_antiban_whatsapp || '¡Hola! Para poder compartirte capturas y el documento por WhatsApp sin que el sistema bloquee los enlaces, por favor añade nuestro contacto a tu agenda telefónica.'}
+\`\`\`
+
+### C. Pitch de WhatsApp (Una vez agendados):
+\`\`\`text
+${res.pitch_whatsapp || ''}
+\`\`\`
+
 ---
 
-## 🔴 4. FUGAS DE DINERO & CONVERSIÓN
+## 🔴 5. FUGAS DE DINERO & CONVERSIÓN
 ${res.fugas_de_dinero?.map((f, i) => `${i + 1}. **${f.titulo}**\n   - **Impacto:** ${f.impacto_negocio}\n   - **Solución Propuesta:** ${f.solucion_simple}`).join('\n\n') || 'Ninguna fuga crítica detectada.'}
 
 ---
 
-## 🎯 5. MATRIZ GAP DE TRANSFORMACIÓN DIGITAL 360°
+## 🎯 6. MATRIZ GAP DE TRANSFORMACIÓN DIGITAL 360°
 | Capa de Análisis | Hallazgo Crítico | Impacto Técnico | Impacto en Negocio ($) | Solución Propuesta |
 | :--- | :--- | :--- | :--- | :--- |
 ${res.matriz_gap?.map(g => `| **${g.capa}** | ${g.hallazgo || g.hallazgo_critico || ''} | ${g.impacto_tecnico || ''} | ${g.impacto_negocio_dolares || g.impacto_negocio || ''} | ${g.solucion || g.solucion_propuesta || ''} |`).join('\n') || ''}
 
 ---
 
-## 💰 6. PROYECCIÓN FINANCIERA DE ROI ESTIMADO
+## 💰 7. PROYECCIÓN FINANCIERA DE ROI ESTIMADO
 - **Tráfico Estimado:** ${res.proyeccion_roi?.trafico_mensual || 'N/A'}
 - **Ticket Medio:** ${res.proyeccion_roi?.ticket_medio || 'N/A'}
 - **Conversión Actual:** ${res.proyeccion_roi?.conversion_actual || 'N/A'}
@@ -518,7 +562,7 @@ ${res.matriz_gap?.map(g => `| **${g.capa}** | ${g.hallazgo || g.hallazgo_critico
 
 ---
 
-## 🤖 7. GEO & POSICIONAMIENTO EN MOTORES DE IA (SCHEMA.ORG)
+## 🤖 8. GEO & POSICIONAMIENTO EN MOTORES DE IA (SCHEMA.ORG)
 - **Entidades Clave:** ${res.geo_schema?.entidades?.join(', ') || 'N/A'}
 ${res.geo_schema?.wikidata_ids && res.geo_schema.wikidata_ids.length > 0 ? `- **Wikidata IDs:** ${res.geo_schema.wikidata_ids.join(', ')}\n` : ''}- **Frase de Citabilidad para LLMs:** "${res.geo_schema?.frase_citabilidad || 'N/A'}"
 - **Estructura JSON-LD:**
@@ -528,7 +572,7 @@ ${JSON.stringify(res.geo_schema?.json_ld || {}, null, 2)}
 
 ---
 
-${res.experimentos_ab && res.experimentos_ab.length > 0 ? `## 🧪 8. HIPÓTESIS DE TESTING A/B VALIDABLES
+${res.experimentos_ab && res.experimentos_ab.length > 0 ? `## 🧪 9. HIPÓTESIS DE TESTING A/B VALIDABLES
 ${res.experimentos_ab.map((exp: ExperimentoAB, i: number) => `### Experimento A/B ${i + 1}: ${exp.nombre}
 - **Hipótesis:** ${exp.hipotesis}
 - **Variable A (Control):** ${exp.variable_a_control}
@@ -536,7 +580,7 @@ ${res.experimentos_ab.map((exp: ExperimentoAB, i: number) => `### Experimento A/
 - **Métrica de Éxito Estimada:** ${exp.metrica_exito}`).join('\n\n')}
 
 ---
-` : ''}${res.lead_magnet_tecnico ? `## 🔌 9. PROPUESTA DE LEAD MAGNET TÉCNICO INTERACTIVO ("Widget de Amabilidad Digital")
+` : ''}${res.lead_magnet_tecnico ? `## 🔌 10. PROPUESTA DE LEAD MAGNET TÉCNICO INTERACTIVO ("Widget de Amabilidad Digital")
 ### "${res.lead_magnet_tecnico.nombre}"
 ${res.lead_magnet_tecnico.descripcion}
 
@@ -544,21 +588,29 @@ ${res.lead_magnet_tecnico.descripcion}
 - **Impacto en Captación:** ${res.lead_magnet_tecnico.impacto_captacion}
 
 ---
-` : ''}## ✍️ 10. COPYS REESCRITOS DE ALTO IMPACTO
+` : ''}## ✍️ 11. COPYS REESCRITOS DE ALTO IMPACTO
 ${res.copys_reescritos?.map((c, i) => `### Enfoque ${i + 1}: ${c.enfoque}\n- **Titular:** "${c.headline}"\n- **Subtitular:** "${c.subheadline}"`).join('\n\n') || ''}
 
 ---
 
-## 🛡️ 11. ARMAS CONTRA OBJECIONES DEL CLIENTE
+## 🛡️ 12. ARMAS CONTRA OBJECIONES DEL CLIENTE
 ${res.armas_venta_objeciones?.map((a, i) => `${i + 1}. **Objeción:** "${a.objecion || a.objecion_cliente || ''}"\n   - **Contramedida Persuasiva:** ${a.contramedida || a.contramedida_persuasiva || ''}`).join('\n\n') || ''}
 
 ---
 
-## 🗺️ 12. ROADMAP DE IMPLEMENTACIÓN EN 5 FASES
+## 🗺️ 13. ROADMAP DE IMPLEMENTACIÓN EN 5 FASES
 ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
 
 ---
-*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.07*
+
+${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (15 MINUTOS)
+- **Minuto 0 a 3 (Apertura Empática):** ${res.guion_llamada.min_0_3_apertura}
+- **Minuto 3 a 8 (Demostración de Fugas sin Culpar):** ${res.guion_llamada.min_3_8_demostracion}
+- **Minuto 8 a 12 (Presentación de Solución Amable):** ${res.guion_llamada.min_8_12_solucion}
+- **Minuto 12 a 15 (Cierre de Presupuesto con ROI):** ${res.guion_llamada.min_12_15_cierre}
+
+---
+` : ''}*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.08*
 `;
   };
 
@@ -714,7 +766,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.07</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.08</span>
             </div>
           </div>
         </footer>
@@ -1093,6 +1145,15 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
 
               <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
                 <button
+                  onClick={() => { setPresentationSlide(0); setShowPresentation(true); }}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] text-xs font-bold transition shadow-sm cursor-pointer"
+                  title="Abrir presentación visual en diapositivas para videollamada"
+                >
+                  <Presentation size={15} />
+                  <span>Presentación (Slides)</span>
+                </button>
+
+                <button
                   onClick={handlePrintPdf}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition border border-white/15 cursor-pointer"
                   title="Imprimir o Guardar como PDF corporativo"
@@ -1134,38 +1195,74 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
             <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2 no-print">
               <button
                 onClick={() => setActiveTab('outreach')}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
                   activeTab === 'outreach'
                     ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
                     : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <MessageSquare size={18} />
-                <span>1. Outreach Rápido (WhatsApp & Email)</span>
+                <Mail size={16} />
+                <span>1. Prospección Segura & Emails</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('perdidas')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
+                  activeTab === 'perdidas'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Calculator size={16} />
+                <span>2. Dinero Perdido al Mes</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('guion')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
+                  activeTab === 'guion'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <PhoneCall size={16} />
+                <span>3. Guión Llamada (15 Min)</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('nexus')}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
                   activeTab === 'nexus'
                     ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
                     : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Crown size={18} />
-                <span>2. Informe Autoridad (NEXUS 360°)</span>
+                <Crown size={16} />
+                <span>4. Informe Autoridad (GAP 360°)</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('growth')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
+                  activeTab === 'growth'
+                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
+                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <TrendingUp size={16} />
+                <span>5. Testing A/B & Lead Magnet</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('rgpd')}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition cursor-pointer ${
                   activeTab === 'rgpd'
                     ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
                     : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Scale size={18} />
-                <span>3. RGPD & Multas UE</span>
+                <Scale size={16} />
+                <span>6. RGPD & Multas UE</span>
                 {resultado.rgpd_audit?.nivel_riesgo && (
                   <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-black ${
                     resultado.rgpd_audit.nivel_riesgo === 'Crítico' || resultado.rgpd_audit.nivel_riesgo === 'Alto'
@@ -1176,110 +1273,68 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                   </span>
                 )}
               </button>
-
-              <button
-                onClick={() => setActiveTab('fugas')}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
-                  activeTab === 'fugas'
-                    ? 'bg-[#D8F3DC] text-[#0D0D0D] shadow-md shadow-[#D8F3DC]/10'
-                    : 'bg-[#121212] text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <AlertTriangle size={18} />
-                <span>4. Fugas de Dinero</span>
-              </button>
             </div>
 
-            {/* CONTENIDO TAB 1: OUTREACH RÁPIDO (WHATSAPP & COLD EMAIL B2B) */}
+            {/* TAB 1: PROSPECCIÓN SEGURA & COLD EMAILS (ANTI-BAN WHATSAPP) */}
             {activeTab === 'outreach' && (
               <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
-                
-                {/* Sub-selector Outreach: WhatsApp vs Cold Email */}
-                <div className="flex items-center justify-between flex-wrap gap-4 border-b border-white/10 pb-4">
-                  <div className="flex gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-2 border-b border-white/10 pb-4">
+                  <div className="flex gap-2 flex-wrap">
                     <button
-                      onClick={() => setOutreachMode('whatsapp')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
-                        outreachMode === 'whatsapp'
+                      onClick={() => setOutreachSubTab('email_1')}
+                      className={`px-3.5 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachSubTab === 'email_1'
                           ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
                           : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
                       }`}
                     >
-                      <MessageSquare size={15} />
-                      <span>Mensaje WhatsApp</span>
+                      📧 Email 1 (Primer Contacto)
                     </button>
                     <button
-                      onClick={() => setOutreachMode('email')}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
-                        outreachMode === 'email'
+                      onClick={() => setOutreachSubTab('email_2')}
+                      className={`px-3.5 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachSubTab === 'email_2'
                           ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
                           : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
                       }`}
                     >
-                      <Mail size={15} />
-                      <span>Cold Email B2B (AIDA / PAS)</span>
+                      ⏱️ Email 2 (Seguimiento 48h)
+                    </button>
+                    <button
+                      onClick={() => setOutreachSubTab('antiban')}
+                      className={`px-3.5 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachSubTab === 'antiban'
+                          ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
+                          : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      🛡️ Protocolo Anti-Ban WhatsApp
+                    </button>
+                    <button
+                      onClick={() => setOutreachSubTab('whatsapp')}
+                      className={`px-3.5 py-2 rounded-lg font-bold text-xs transition cursor-pointer ${
+                        outreachSubTab === 'whatsapp'
+                          ? 'bg-[#1B4332] text-[#D8F3DC] border border-[#D8F3DC]/30'
+                          : 'bg-[#0D0D0D] text-slate-400 hover:text-white border border-white/10'
+                      }`}
+                    >
+                      💬 Pitch WhatsApp (Agendados)
                     </button>
                   </div>
-
-                  {outreachMode === 'whatsapp' ? (
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={waShareUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer shadow-sm"
-                      >
-                        <Send size={14} />
-                        <span>Abrir en WhatsApp</span>
-                      </a>
-                      <button
-                        onClick={() => copyToClipboard(pitchText, 'pitch')}
-                        className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer"
-                      >
-                        {copiedSection === 'pitch' ? <Check size={14} /> : <Copy size={14} />}
-                        <span>{copiedSection === 'pitch' ? '¡Copiado!' : 'Copiar Texto'}</span>
-                      </button>
-                    </div>
-                  ) : (
-                    <a
-                      href={mailtoUrl}
-                      className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3.5 py-2 rounded-lg text-xs transition cursor-pointer"
-                    >
-                      <ExternalLink size={14} />
-                      <span>Abrir en Gestor de Correo</span>
-                    </a>
-                  )}
                 </div>
 
-                {/* Vista WhatsApp */}
-                {outreachMode === 'whatsapp' && (
-                  <div className="space-y-4">
-                    <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 font-mono text-sm text-slate-300 leading-relaxed whitespace-pre-wrap selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
-                      {pitchText}
-                    </div>
-
-                    <div className="p-4 bg-[#1B4332]/20 rounded-xl border border-[#1B4332] flex items-start gap-3">
-                      <TrendingUp className="text-[#D8F3DC] shrink-0 mt-0.5" size={20} />
-                      <div className="text-sm text-slate-300">
-                        <strong className="text-[#D8F3DC]">Estrategia recomendada:</strong> Envía este mensaje por WhatsApp como primer contacto. Cuando te respondan pidiendo más detalles, saca las armas del <strong>Informe de Autoridad 360°</strong> o de la <strong>Auditoría RGPD</strong> para cerrar el presupuesto.
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Vista Cold Email B2B */}
-                {outreachMode === 'email' && (
+                {/* Subvista: Email 1 Primer Contacto */}
+                {outreachSubTab === 'email_1' && (
                   <div className="space-y-6">
-                    {/* Asuntos de Alta Apertura */}
                     {resultado.cold_email && (
                       <div className="space-y-3">
                         <div className="text-xs font-bold uppercase tracking-wider text-[#D8F3DC] flex items-center gap-1.5">
-                          <Mail size={16} /> Asuntos de Alta Tasa de Apertura (+60% sin spam):
+                          <Mail size={16} /> Asuntos de Alta Apertura (+60% de tasa estimada sin palabras de spam):
                         </div>
                         <div className="grid md:grid-cols-3 gap-3">
                           <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2 flex flex-col justify-between">
                             <div>
-                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Opción 1 (Intriga / Curiosidad):</span>
+                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Opción 1 (Intriga):</span>
                               <p className="text-sm font-semibold text-white">&ldquo;{resultado.cold_email.asunto_1}&rdquo;</p>
                             </div>
                             <button
@@ -1322,9 +1377,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                       </div>
                     )}
 
-                    {/* Plantillas de Email: AIDA & PAS */}
                     <div className="grid md:grid-cols-2 gap-4">
-                      {/* Estructura AIDA */}
                       <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 space-y-3 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
@@ -1343,7 +1396,6 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                         </div>
                       </div>
 
-                      {/* Estructura PAS */}
                       <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 space-y-3 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
@@ -1363,7 +1415,6 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                       </div>
                     </div>
 
-                    {/* Llamada a la acción recomendada */}
                     {resultado.cold_email?.llamada_a_la_accion && (
                       <div className="p-4 bg-[#1B4332]/20 rounded-xl border border-[#1B4332] text-xs text-slate-300">
                         <strong className="text-[#D8F3DC] block mb-1">💡 Soft CTA de Cierre Recomendado:</strong>
@@ -1373,10 +1424,202 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                   </div>
                 )}
 
+                {/* Subvista: Email 2 Seguimiento 48h */}
+                {outreachSubTab === 'email_2' && (
+                  <div className="bg-[#0D0D0D] p-6 rounded-xl border border-white/10 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div>
+                        <span className="text-xs font-bold uppercase text-[#D8F3DC] block">Email de Seguimiento a las 48h (Aportando Valor)</span>
+                        <span className="text-xs text-slate-400">Para enviar si no hubo respuesta al primer correo, sin sonar insistente.</span>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(`${resultado.cold_email?.email_seguimiento_48h?.asunto}\n\n${resultado.cold_email?.email_seguimiento_48h?.cuerpo}`, 'email2')}
+                        className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                      >
+                        {copiedSection === 'email2' ? <Check size={14} /> : <Copy size={14} />}
+                        <span>{copiedSection === 'email2' ? '¡Copiado!' : 'Copiar Email 2'}</span>
+                      </button>
+                    </div>
+
+                    <div>
+                      <span className="text-xs font-bold text-slate-400 block mb-1">Asunto Recomendado:</span>
+                      <p className="text-sm font-semibold text-white">&ldquo;{resultado.cold_email?.email_seguimiento_48h?.asunto || `Re: ${resultado.url} - Detalle adicional`}&rdquo;</p>
+                    </div>
+
+                    <div className="p-4 bg-black/40 rounded-xl border border-white/5 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {resultado.cold_email?.email_seguimiento_48h?.cuerpo || 'Generando email de seguimiento...'}
+                    </div>
+                  </div>
+                )}
+
+                {/* Subvista: Protocolo Anti-Ban WhatsApp */}
+                {outreachSubTab === 'antiban' && (
+                  <div className="bg-[#0D0D0D] p-6 rounded-xl border border-amber-500/30 space-y-4">
+                    <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs">
+                      <ShieldAlert size={20} className="shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="block text-amber-200 font-bold mb-0.5">🛡️ PROTOCOLO DE SEGURIDAD PARA WHATSAPP:</strong>
+                        Nunca envíes mensajes en frío con enlaces directos por WhatsApp porque el usuario puede reportarte como spam y WhatsApp suspenderá tu número. Cuando el cliente responda a tu email, envíale este mensaje para que te guarde primero en sus contactos.
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase text-[#D8F3DC]">Mensaje de Transición Segura:</span>
+                        <button
+                          onClick={() => copyToClipboard(resultado.cold_email?.protocolo_antiban_whatsapp || '', 'antiban_txt')}
+                          className="flex items-center gap-1 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                        >
+                          {copiedSection === 'antiban_txt' ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copiedSection === 'antiban_txt' ? '¡Copiado!' : 'Copiar Texto'}</span>
+                        </button>
+                      </div>
+                      <div className="p-4 bg-black/50 rounded-xl border border-white/10 font-mono text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
+                        {resultado.cold_email?.protocolo_antiban_whatsapp || '¡Hola! Para poder compartirte capturas y el documento por WhatsApp sin que el sistema bloquee los enlaces por seguridad, por favor añade nuestro contacto a tu agenda telefónica. En cuanto nos tengas guardados, te paso el acceso directo.'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Subvista: Pitch WhatsApp */}
+                {outreachSubTab === 'whatsapp' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <span className="text-xs font-bold uppercase text-emerald-400">Mensaje de WhatsApp (Para enviar una vez agendados):</span>
+                      <div className="flex gap-2">
+                        <a
+                          href={waShareUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                        >
+                          <Send size={14} />
+                          <span>Abrir WhatsApp</span>
+                        </a>
+                        <button
+                          onClick={() => copyToClipboard(pitchText, 'pitch_txt')}
+                          className="flex items-center gap-1.5 bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer"
+                        >
+                          {copiedSection === 'pitch_txt' ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copiedSection === 'pitch_txt' ? '¡Copiado!' : 'Copiar Texto'}</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-[#0D0D0D] p-5 rounded-xl border border-white/10 font-mono text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">
+                      {pitchText}
+                    </div>
+                  </div>
+                )}
+
               </div>
             )}
 
-            {/* CONTENIDO TAB 2: INFORME DE AUTORIDAD 360° (NEXUS) */}
+            {/* TAB 2: CALCULADORA DE DINERO PERDIDO AL MES (FUGA OCULTA) */}
+            {activeTab === 'perdidas' && (
+              <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
+                <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-wider text-xs">
+                  <Calculator size={16} /> Calculadora de Fuga Financiera Oculta
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-6 bg-gradient-to-br from-rose-950/40 to-[#0D0D0D] border border-rose-900/60 rounded-2xl space-y-2">
+                    <span className="text-xs font-bold uppercase text-rose-400 tracking-wider">Dinero Perdido Estimado al Mes:</span>
+                    <div className="text-4xl font-black text-rose-300">
+                      {resultado.calculadora_perdidas?.perdida_estimada_mensual || '$1,850 / mes'}
+                    </div>
+                    <p className="text-xs text-slate-400">Pérdida mensual por fricción, lentitud y falta de canal directo.</p>
+                  </div>
+
+                  <div className="p-6 bg-gradient-to-br from-amber-950/40 to-[#0D0D0D] border border-amber-900/60 rounded-2xl space-y-2">
+                    <span className="text-xs font-bold uppercase text-amber-400 tracking-wider">Impacto Financiero Anual:</span>
+                    <div className="text-4xl font-black text-amber-300">
+                      {resultado.calculadora_perdidas?.impacto_anual || '$22,200 / año'}
+                    </div>
+                    <p className="text-xs text-slate-400">Total acumulado que se fuga hacia competidores cada 12 meses.</p>
+                  </div>
+                </div>
+
+                {resultado.calculadora_perdidas?.motivos_fuga && resultado.calculadora_perdidas.motivos_fuga.length > 0 && (
+                  <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-3">
+                    <span className="text-xs font-bold uppercase text-[#D8F3DC] block">¿De dónde sale esta fuga?:</span>
+                    <div className="space-y-2">
+                      {resultado.calculadora_perdidas.motivos_fuga.map((motivo: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                          <XCircle size={15} className="text-rose-400 shrink-0 mt-0.5" />
+                          <span>{motivo}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {resultado.fugas_de_dinero && resultado.fugas_de_dinero.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <span className="text-xs font-bold uppercase text-slate-400 block">Detalle de Fugas Detectadas:</span>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {resultado.fugas_de_dinero.map((f: FugaDinero, i: number) => (
+                        <div key={i} className="p-4 bg-[#0D0D0D] border border-white/10 rounded-xl space-y-2">
+                          <div className="font-bold text-white text-sm">{i + 1}. {f.titulo}</div>
+                          <p className="text-xs text-slate-400">{f.impacto_negocio}</p>
+                          <div className="text-xs text-emerald-400 bg-emerald-950/30 p-2 rounded border border-emerald-900/40">
+                            <strong>Solución:</strong> {f.solucion_simple}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: GUIÓN DE LLAMADA / VIDEOLLAMADA CONSULTIVA (15 MINUTOS) */}
+            {activeTab === 'guion' && (
+              <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
+                <div className="flex items-center gap-2 text-[#D8F3DC] font-bold uppercase tracking-wider text-xs">
+                  <PhoneCall size={16} /> Guión Consultivo de Cierre para Videollamada / Teléfono (15 Minutos)
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-xs font-bold text-emerald-400 uppercase">Paso 1: Minuto 0 a 3 (Apertura Empática & Elefante en la Habitación)</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {resultado.guion_llamada?.min_0_3_apertura || 'Agradece el tiempo, elogia la calidad del servicio del cliente y plantea con delicadeza que detectaste un cuello de botella técnico que frena su crecimiento sin que ellos lo sospechen.'}
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-xs font-bold text-amber-400 uppercase">Paso 2: Minuto 3 a 8 (Demostración de Fugas sin Culpabilizar)</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {resultado.guion_llamada?.min_3_8_demostracion || 'Muestra la calculadora de pérdidas y el fallo de indexación/móvil dejando claro que es un fallo del código antiguo y no de su gestión comercial.'}
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-xs font-bold text-[#D8F3DC] uppercase">Paso 3: Minuto 8 a 12 (Presentación de la Solución Amable & Widget)</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {resultado.guion_llamada?.min_8_12_solucion || 'Presenta el plan de blindaje legal, optimización WPO y la instalación del widget interactivo a medida para captar leads en automático.'}
+                    </p>
+                  </div>
+
+                  <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-xs font-bold text-emerald-300 uppercase">Paso 4: Minuto 12 a 15 (Cierre de Presupuesto con Proyección de ROI)</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {resultado.guion_llamada?.min_12_15_cierre || 'Muestra la proyección financiera: con captar 2 clientes adicionales la inversión queda amortizada. Acuerda fecha para arrancar la Fase 1 en 48 horas.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: INFORME DE AUTORIDAD 360° (NEXUS) */}
             {activeTab === 'nexus' && (
               <div className="space-y-6">
                 
@@ -1401,7 +1644,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                 {resultado.matriz_gap && resultado.matriz_gap.length > 0 && (
                   <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-5">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                      <FileText className="text-[#D8F3DC]" size={20} /> Matriz GAP (Diagnóstico Holístico)
+                      <FileText className="text-[#D8F3DC]" size={20} /> Matriz GAP (Diagnóstico Holístico en 5 Capas)
                     </h3>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-sm text-slate-300 border-collapse">
@@ -1436,13 +1679,13 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                         <DollarSign className="text-emerald-400" size={22} /> Proyección Financiera de ROI
                       </h3>
                       <div className="text-xs text-slate-400">
-                        Base: {resultado.proyeccion_roi.trafico_mensual || '3,000 visitas'} • Ticket: {resultado.proyeccion_roi.ticket_medio || '$1,500'}
+                        Base: {resultado.proyeccion_roi.trafico_mensual || '1,500 visitas'} • Ticket: {resultado.proyeccion_roi.ticket_medio || '$450'}
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-4">
                       <div className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10">
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Escenario Pesimista (+5%)</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Escenario Conservador (+5%)</div>
                         <div className="text-2xl font-black text-slate-200">{resultado.proyeccion_roi.escenario_pesimista}</div>
                         <div className="text-xs text-slate-500 mt-1">Mejora mínima de conversión</div>
                       </div>
@@ -1552,7 +1795,64 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* CONTENIDO TAB 3: MÓDULO LEGAL RGPD & SANCIONES UE / AEPD */}
+            {/* TAB 5: TESTING A/B & LEAD MAGNET TÉCNICO */}
+            {activeTab === 'growth' && (
+              <div className="space-y-6">
+                {/* Experimentos A/B */}
+                {resultado.experimentos_ab && resultado.experimentos_ab.length > 0 && (
+                  <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-4">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                      <TrendingUp className="text-[#D8F3DC]" size={20} /> Hipótesis de Testing A/B Validables
+                    </h3>
+                    <div className="space-y-4">
+                      {resultado.experimentos_ab.map((exp: ExperimentoAB, i: number) => (
+                        <div key={i} className="p-5 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-3">
+                          <div className="font-bold text-white text-base">Experimento {i + 1}: {exp.nombre}</div>
+                          <p className="text-xs text-slate-300 italic">&ldquo;{exp.hipotesis}&rdquo;</p>
+                          <div className="grid md:grid-cols-2 gap-3 text-xs">
+                            <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                              <span className="font-bold text-slate-400 block mb-1">Variable A (Control actual):</span>
+                              <span className="text-slate-200">{exp.variable_a_control}</span>
+                            </div>
+                            <div className="p-3 bg-[#1B4332]/30 rounded-lg border border-[#1B4332]">
+                              <span className="font-bold text-[#D8F3DC] block mb-1">Variable B (Variante propuesta):</span>
+                              <span className="text-slate-200">{exp.variable_b_variante}</span>
+                            </div>
+                          </div>
+                          <div className="text-xs text-emerald-400 font-semibold">
+                            🎯 Métrica de Éxito: {exp.metrica_exito}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lead Magnet Técnico Interactivo */}
+                {resultado.lead_magnet_tecnico && (
+                  <div className="bg-[#121212] border border-[#1B4332] p-6 md:p-8 rounded-2xl space-y-4">
+                    <div className="flex items-center gap-2 text-[#D8F3DC] font-bold uppercase tracking-wider text-xs">
+                      <Sparkles size={16} /> Propuesta de Lead Magnet Técnico (&ldquo;Widget de Amabilidad Digital&rdquo;)
+                    </div>
+                    <h3 className="text-2xl font-black text-white">&ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;</h3>
+                    <p className="text-slate-300 text-sm">{resultado.lead_magnet_tecnico.descripcion}</p>
+
+                    <div className="grid md:grid-cols-2 gap-4 pt-2">
+                      <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-1">
+                        <span className="text-xs font-bold text-[#D8F3DC] uppercase block">Funcionamiento Técnico:</span>
+                        <p className="text-xs text-slate-300">{resultado.lead_magnet_tecnico.como_funciona_vanilla_js}</p>
+                      </div>
+                      <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10 space-y-1">
+                        <span className="text-xs font-bold text-emerald-400 uppercase block">Impacto en Captación:</span>
+                        <p className="text-xs text-slate-300">{resultado.lead_magnet_tecnico.impacto_captacion}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 6: MÓDULO LEGAL RGPD & SANCIONES UE / AEPD */}
             {activeTab === 'rgpd' && (
               <div className="space-y-6">
                 
@@ -1696,42 +1996,222 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* CONTENIDO TAB 4: FUGAS DE DINERO CLÁSICAS */}
-            {activeTab === 'fugas' && (
-              <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl space-y-6">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <AlertTriangle className="text-rose-400" size={22} /> Fugas de Dinero Detectadas
-                </h3>
-                <div className="space-y-4">
-                  {resultado.fugas_de_dinero?.map((fuga: FugaDinero, idx: number) => (
-                    <div key={idx} className="p-5 bg-rose-950/30 rounded-xl border border-rose-900/60 space-y-2">
-                      <h4 className="font-bold text-rose-300 text-lg">{idx + 1}. {fuga.titulo}</h4>
-                      <p className="text-sm text-slate-300"><strong>Impacto en negocio:</strong> {fuga.impacto_negocio}</p>
-                      <p className="text-sm text-emerald-400 bg-emerald-950/40 p-3 rounded-lg border border-emerald-900/50">
-                        <strong>✅ Solución rápida:</strong> {fuga.solucion_simple}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+          </div>
+        )}
 
-                <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-white/10">
-                  <div className="p-4 bg-[#0D0D0D] rounded-xl border border-white/10">
-                    <h4 className="font-bold text-slate-300 mb-2 flex items-center gap-2">
-                      <CheckCircle size={16} className="text-emerald-400"/> Puntos Fuertes
-                    </h4>
-                    <ul className="list-disc list-inside text-sm text-slate-400 space-y-1">
-                      {resultado.puntos_fuertes?.map((p: string, i: number) => <li key={i}>{p}</li>)}
-                    </ul>
+        {/* ========================================================================= */}
+        {/* 🖥️ MODAL DE MODO PRESENTACIÓN INTERACTIVO (SLIDES PARA ZOOM / GOOGLE MEET) */}
+        {/* ========================================================================= */}
+        {showPresentation && resultado && (
+          <div className="fixed inset-0 z-50 bg-[#0D0D0D]/95 backdrop-blur-md flex flex-col justify-between p-6 md:p-12 text-white no-print">
+            
+            {/* Header de la Presentación */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <Image src="/002.gif" alt="Marketing Amable" width={28} height={28} className="h-7 w-auto" unoptimized />
+                <span className="font-extrabold text-sm tracking-wider text-white">
+                  MARKETING <span className="text-[#D8F3DC]">AMABLE</span> • Presentación Ejecutiva 360°
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400 font-mono">Diapositiva {presentationSlide + 1} de 5</span>
+                <button
+                  onClick={() => setShowPresentation(false)}
+                  className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                  title="Cerrar presentación"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenido Dinámico de la Slide */}
+            <div className="my-auto max-w-4xl mx-auto w-full py-6">
+              
+              {/* Slide 0: Portada & Diagnóstico */}
+              {presentationSlide === 0 && (
+                <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332] text-[#D8F3DC] text-xs font-bold uppercase tracking-wider">
+                    Diagnóstico de Autoridad Digital & Conversión
                   </div>
-                  <div className="p-4 bg-[#1B4332]/30 rounded-xl border border-[#1B4332]">
-                    <h4 className="font-bold text-[#D8F3DC] mb-2 flex items-center gap-2">
-                      <TrendingUp size={16}/> Acción Prioritaria
-                    </h4>
-                    <p className="text-sm text-slate-300">{resultado.recomendacion_prioritaria}</p>
+                  <h1 className="text-4xl md:text-5xl font-black text-white">{resultado.url}</h1>
+                  <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">{resultado.resumen_ejecutivo}</p>
+
+                  <div className="flex justify-center items-center gap-6 pt-4">
+                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
+                      <div className="text-xs text-slate-400 uppercase font-bold">Puntuación Global</div>
+                      <div className="text-4xl font-black text-[#D8F3DC] mt-1">{resultado.puntuacion_global}/100</div>
+                    </div>
+                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
+                      <div className="text-xs text-slate-400 uppercase font-bold">Nota de Autoridad</div>
+                      <div className="text-4xl font-black text-emerald-400 mt-1">{resultado.nota_autoridad || '3.5 / 10'}</div>
+                    </div>
+                  </div>
+
+                  {resultado.elephant_in_the_room && (
+                    <div className="p-5 bg-rose-950/40 border border-rose-900/60 rounded-xl text-left max-w-2xl mx-auto">
+                      <span className="text-xs font-bold uppercase text-rose-400 block mb-1">🐘 The Elephant in the Room:</span>
+                      <p className="text-xs text-slate-200 leading-relaxed">{resultado.elephant_in_the_room}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Slide 1: Pérdidas Financieras Ocultas */}
+              {presentationSlide === 1 && (
+                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="text-center">
+                    <span className="text-xs font-bold uppercase text-rose-400 tracking-wider">Fuga Financiera Detectada</span>
+                    <h2 className="text-3xl md:text-4xl font-black text-white mt-1">El Coste de la Fricción Digital</h2>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="p-6 bg-rose-950/30 border border-rose-900/60 rounded-2xl text-center space-y-2">
+                      <span className="text-xs font-bold uppercase text-rose-400">Pérdida Estimada al Mes</span>
+                      <div className="text-4xl font-black text-rose-300">{resultado.calculadora_perdidas?.perdida_estimada_mensual || '$1,850 / mes'}</div>
+                      <p className="text-xs text-slate-400">Por rebote móvil, lentitud y falta de canal inmediato.</p>
+                    </div>
+                    <div className="p-6 bg-amber-950/30 border border-amber-900/60 rounded-2xl text-center space-y-2">
+                      <span className="text-xs font-bold uppercase text-amber-400">Pérdida Anual Acumulada</span>
+                      <div className="text-4xl font-black text-amber-300">{resultado.calculadora_perdidas?.impacto_anual || '$22,200 / año'}</div>
+                      <p className="text-xs text-slate-400">Capital que se transfiere silenciosamente a la competencia.</p>
+                    </div>
+                  </div>
+
+                  {resultado.calculadora_perdidas?.motivos_fuga && (
+                    <div className="p-5 bg-[#121212] rounded-xl border border-white/10 space-y-2">
+                      <span className="text-xs font-bold uppercase text-[#D8F3DC] block">Cuellos de Botella Detectados:</span>
+                      {resultado.calculadora_perdidas.motivos_fuga.map((m: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
+                          <XCircle size={14} className="text-rose-400 shrink-0" />
+                          <span>{m}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Slide 2: Matriz GAP 5.0 */}
+              {presentationSlide === 2 && (
+                <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="text-center">
+                    <span className="text-xs font-bold uppercase text-[#D8F3DC] tracking-wider">Metodología de Élite</span>
+                    <h2 className="text-3xl font-black text-white mt-1">Matriz GAP de Transformación en 5 Capas</h2>
+                  </div>
+
+                  <div className="space-y-3">
+                    {resultado.matriz_gap?.map((row: GapRow, i: number) => (
+                      <div key={i} className="p-4 bg-[#121212] border border-white/10 rounded-xl flex justify-between items-center gap-4 text-xs">
+                        <div className="w-1/4 font-bold text-[#D8F3DC]">{row.capa}</div>
+                        <div className="w-2/4 text-slate-300">{row.hallazgo || row.hallazgo_critico}</div>
+                        <div className="w-1/4 text-right text-emerald-400 font-semibold">{row.solucion || row.solucion_propuesta}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              )}
+
+              {/* Slide 3: Testing A/B & Lead Magnet */}
+              {presentationSlide === 3 && (
+                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="text-center">
+                    <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider">Estrategia de Captación Inmediata</span>
+                    <h2 className="text-3xl font-black text-white mt-1">Widget Interactivo & Tests A/B</h2>
+                  </div>
+
+                  {resultado.lead_magnet_tecnico && (
+                    <div className="p-6 bg-[#121212] border border-[#1B4332] rounded-2xl space-y-3">
+                      <span className="text-xs font-bold uppercase text-[#D8F3DC]">Propuesta de Herramienta Exclusiva:</span>
+                      <h3 className="text-2xl font-black text-white">&ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;</h3>
+                      <p className="text-xs text-slate-300">{resultado.lead_magnet_tecnico.descripcion}</p>
+                      <div className="p-3 bg-[#0D0D0D] rounded-xl border border-white/10 text-xs text-emerald-400">
+                        <strong>Impacto:</strong> {resultado.lead_magnet_tecnico.impacto_captacion}
+                      </div>
+                    </div>
+                  )}
+
+                  {resultado.experimentos_ab && resultado.experimentos_ab[0] && (
+                    <div className="p-4 bg-[#121212] border border-white/10 rounded-xl text-xs space-y-2">
+                      <div className="font-bold text-white">Test A/B Prioritario: {resultado.experimentos_ab[0].nombre}</div>
+                      <div className="text-slate-400">{resultado.experimentos_ab[0].hipotesis}</div>
+                      <div className="text-emerald-400 font-bold">Métrica esperada: {resultado.experimentos_ab[0].metrica_exito}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Slide 4: Proyección ROI & Roadmap */}
+              {presentationSlide === 4 && (
+                <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-300">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-[#D8F3DC] tracking-wider">Retorno de Inversión</span>
+                    <h2 className="text-3xl md:text-4xl font-black text-white mt-1">Proyección de Crecimiento</h2>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
+                      <span className="text-xs font-bold text-slate-400 block uppercase">Conservador</span>
+                      <div className="text-2xl font-black text-slate-200 mt-1">{resultado.proyeccion_roi?.escenario_pesimista}</div>
+                    </div>
+                    <div className="p-5 bg-[#1B4332] border border-[#D8F3DC]/30 rounded-2xl">
+                      <span className="text-xs font-bold text-[#D8F3DC] block uppercase">Realista</span>
+                      <div className="text-2xl font-black text-[#D8F3DC] mt-1">{resultado.proyeccion_roi?.escenario_realista}</div>
+                    </div>
+                    <div className="p-5 bg-[#121212] border border-white/10 rounded-2xl">
+                      <span className="text-xs font-bold text-emerald-400 block uppercase">Optimista</span>
+                      <div className="text-2xl font-black text-emerald-300 mt-1">{resultado.proyeccion_roi?.escenario_optimista}</div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 italic max-w-xl mx-auto">&ldquo;{resultado.proyeccion_roi?.conclusion}&rdquo;</p>
+                  
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setShowPresentation(false)}
+                      className="bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold px-6 py-3 rounded-xl transition text-sm cursor-pointer shadow-lg shadow-[#D8F3DC]/20"
+                    >
+                      Cerrar Presentación y Ver Detalles
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer y Controles de la Presentación */}
+            <div className="flex items-center justify-between border-t border-white/10 pt-4">
+              <button
+                disabled={presentationSlide === 0}
+                onClick={() => setPresentationSlide(prev => Math.max(0, prev - 1))}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <ChevronLeft size={16} />
+                <span>Anterior</span>
+              </button>
+
+              <div className="flex gap-2">
+                {[0, 1, 2, 3, 4].map(idx => (
+                  <button
+                    key={idx}
+                    onClick={() => setPresentationSlide(idx)}
+                    className={`w-2.5 h-2.5 rounded-full transition cursor-pointer ${
+                      presentationSlide === idx ? 'bg-[#D8F3DC] scale-125' : 'bg-white/20 hover:bg-white/40'
+                    }`}
+                  />
+                ))}
               </div>
-            )}
+
+              <button
+                disabled={presentationSlide === 4}
+                onClick={() => setPresentationSlide(prev => Math.min(4, prev + 1))}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] text-xs font-bold transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <span>Siguiente</span>
+                <ChevronRight size={16} />
+              </button>
+            </div>
 
           </div>
         )}
@@ -1757,7 +2237,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
               <div className="text-right text-[11px] text-slate-600">
                 <div><strong>Fecha:</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                <div><strong>Versión:</strong> v.05</div>
+                <div><strong>Versión:</strong> v.08</div>
               </div>
             </div>
 
@@ -1799,10 +2279,36 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               )}
             </div>
 
-            {/* 2. Módulo Legal RGPD & Riesgo Sancionador */}
+            {/* 2. Dinero Perdido al Mes & Fuga Financiera */}
+            {resultado.calculadora_perdidas && (
+              <div className="print-avoid-break bg-rose-50/50 border border-rose-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-rose-900 uppercase tracking-wider mb-2">
+                  📉 2. Dinero Perdido al Mes (Fuga Financiera Oculta)
+                </h2>
+                <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                  <div className="p-2.5 bg-white border border-rose-200 rounded-lg">
+                    <span className="text-[10px] font-bold text-rose-700 block">PÉRDIDA MENSUAL ESTIMADA</span>
+                    <span className="font-bold text-slate-900 text-sm">{resultado.calculadora_perdidas.perdida_estimada_mensual}</span>
+                  </div>
+                  <div className="p-2.5 bg-white border border-amber-200 rounded-lg">
+                    <span className="text-[10px] font-bold text-amber-800 block">IMPACTO ANUAL PROYECTADO</span>
+                    <span className="font-bold text-slate-900 text-sm">{resultado.calculadora_perdidas.impacto_anual}</span>
+                  </div>
+                </div>
+                {resultado.calculadora_perdidas.motivos_fuga && (
+                  <div className="text-[11px] text-slate-700 space-y-1">
+                    {resultado.calculadora_perdidas.motivos_fuga.map((m: string, i: number) => (
+                      <div key={i}>• {m}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. Módulo Legal RGPD & Riesgo Sancionador */}
             <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
               <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
-                ⚖️ 2. Módulo Legal RGPD & Riesgo Sancionador (AEPD / UE)
+                ⚖️ 3. Módulo Legal RGPD & Riesgo Sancionador (AEPD / UE)
               </h2>
               <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
                 <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
@@ -1837,13 +2343,13 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               )}
             </div>
 
-            {/* 3. Prospección Comercial & Cold Emails */}
+            {/* 4. Prospección Comercial & Cold Emails */}
             <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
               <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
-                💬 3. Argumentarios de Prospección Rápida
+                💬 4. Argumentarios de Prospección Segura
               </h2>
               <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <div className="text-[11px] font-bold text-emerald-900 uppercase mb-1">Pitch Directo de WhatsApp:</div>
+                <div className="text-[11px] font-bold text-emerald-900 uppercase mb-1">Pitch Directo de WhatsApp (Para contactos agendados):</div>
                 <div className="text-xs text-slate-800 whitespace-pre-line font-mono">{resultado.pitch_whatsapp}</div>
               </div>
 
@@ -1859,11 +2365,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             </div>
 
-            {/* 4. Detección de Fugas de Dinero */}
+            {/* 5. Detección de Fugas de Dinero */}
             {resultado.fugas_de_dinero && resultado.fugas_de_dinero.length > 0 && (
               <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-rose-800 uppercase tracking-wider mb-3">
-                  🔴 4. Fugas de Dinero & Conversión Detectadas
+                  🔴 5. Fugas de Dinero & Conversión Detectadas
                 </h2>
                 <div className="space-y-2">
                   {resultado.fugas_de_dinero.map((f, i) => (
@@ -1881,11 +2387,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 5. Matriz GAP 360° */}
+            {/* 6. Matriz GAP 360° */}
             {resultado.matriz_gap && resultado.matriz_gap.length > 0 && (
               <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
-                  🎯 5. Matriz GAP de Transformación Digital 360°
+                  🎯 6. Matriz GAP de Transformación Digital 360°
                 </h2>
                 <table className="w-full text-left border-collapse text-[11px]">
                   <thead>
@@ -1910,11 +2416,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 6. Proyección Financiera de ROI */}
+            {/* 7. Proyección Financiera de ROI */}
             {resultado.proyeccion_roi && (
               <div className="print-avoid-break bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
-                  💰 6. Proyección Financiera de Retorno de Inversión (ROI)
+                  💰 7. Proyección Financiera de Retorno de Inversión (ROI)
                 </h2>
                 <div className="grid grid-cols-3 gap-3 mb-3 text-xs text-center">
                   <div className="p-2.5 bg-white border border-slate-200 rounded-lg">
@@ -1934,11 +2440,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 7. Hipótesis de Testing A/B Validables */}
+            {/* 8. Hipótesis de Testing A/B Validables */}
             {resultado.experimentos_ab && resultado.experimentos_ab.length > 0 && (
               <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
-                  🧪 7. Hipótesis de Testing A/B Validables
+                  🧪 8. Hipótesis de Testing A/B Validables
                 </h2>
                 <div className="space-y-3">
                   {resultado.experimentos_ab.map((exp: ExperimentoAB, i: number) => (
@@ -1964,11 +2470,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 8. Propuesta de Lead Magnet Técnico Interactivo */}
+            {/* 9. Propuesta de Lead Magnet Técnico Interactivo */}
             {resultado.lead_magnet_tecnico && (
               <div className="print-avoid-break bg-emerald-50/50 border border-emerald-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                  🔌 8. Propuesta de Lead Magnet Técnico (&ldquo;Widget de Amabilidad Digital&rdquo;)
+                  🔌 9. Propuesta de Lead Magnet Técnico (&ldquo;Widget de Amabilidad Digital&rdquo;)
                 </h2>
                 <div className="text-xs text-slate-900 font-bold mb-1">
                   &ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;
@@ -1987,12 +2493,12 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 9. Copys Reescritos & Objeciones */}
+            {/* 10. Copys Reescritos & Objeciones */}
             <div className="print-avoid-break grid grid-cols-2 gap-4">
               {resultado.copys_reescritos && (
                 <div className="border border-slate-200 rounded-xl p-4">
                   <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                    ✍️ 9. Copys de Alta Conversión
+                    ✍️ 10. Copys de Alta Conversión
                   </h2>
                   <div className="space-y-2 text-xs">
                     {resultado.copys_reescritos.map((c, i) => (
@@ -2009,7 +2515,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               {resultado.armas_venta_objeciones && (
                 <div className="border border-slate-200 rounded-xl p-4">
                   <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                    🛡️ 10. Armas de Venta vs Objeciones
+                    🛡️ 11. Armas de Venta vs Objeciones
                   </h2>
                   <div className="space-y-2 text-xs">
                     {resultado.armas_venta_objeciones.map((a, i) => (
@@ -2023,11 +2529,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               )}
             </div>
 
-            {/* 11. Roadmap en 5 Fases */}
+            {/* 12. Roadmap en 5 Fases */}
             {resultado.roadmap && (
               <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                  🗺️ 11. Roadmap de Implementación en 5 Fases
+                  🗺️ 12. Roadmap de Implementación en 5 Fases
                 </h2>
                 <div className="grid grid-cols-5 gap-2 text-center text-xs">
                   {resultado.roadmap.map((r, i) => (
@@ -2040,10 +2546,37 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
+            {/* 13. Guión Consultivo de Cierre */}
+            {resultado.guion_llamada && (
+              <div className="print-avoid-break bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                  📞 13. Guión Consultivo de Cierre en Videollamada (15 Minutos)
+                </h2>
+                <div className="grid grid-cols-2 gap-3 text-[11px]">
+                  <div className="p-2 bg-white rounded border border-slate-200">
+                    <strong className="text-slate-900 block mb-0.5">Min 0-3 (Apertura):</strong>
+                    <span className="text-slate-700">{resultado.guion_llamada.min_0_3_apertura}</span>
+                  </div>
+                  <div className="p-2 bg-white rounded border border-slate-200">
+                    <strong className="text-slate-900 block mb-0.5">Min 3-8 (Demostración):</strong>
+                    <span className="text-slate-700">{resultado.guion_llamada.min_3_8_demostracion}</span>
+                  </div>
+                  <div className="p-2 bg-white rounded border border-slate-200">
+                    <strong className="text-slate-900 block mb-0.5">Min 8-12 (Solución):</strong>
+                    <span className="text-slate-700">{resultado.guion_llamada.min_8_12_solucion}</span>
+                  </div>
+                  <div className="p-2 bg-white rounded border border-slate-200">
+                    <strong className="text-slate-900 block mb-0.5">Min 12-15 (Cierre):</strong>
+                    <span className="text-slate-700">{resultado.guion_llamada.min_12_15_cierre}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Pie de Página Oficial en PDF */}
             <div className="border-t-2 border-[#1B4332] pt-3 flex items-center justify-between text-[10px] text-slate-500">
               <div>© {new Date().getFullYear()} Marketing Amable • Todos los derechos reservados.</div>
-              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.07</span></div>
+              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.08</span></div>
             </div>
 
           </div>
@@ -2070,7 +2603,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.07</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.08</span>
           </div>
         </div>
       </footer>
