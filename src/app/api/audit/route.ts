@@ -225,6 +225,22 @@ export async function POST(req: NextRequest) {
           'didomi', 'osano', 'cookie-script', 'cookiescript', 'gdpr-cookie-consent'
         ];
         hasCmpBanner = cmpKeywords.some(cmp => rawLowerHtml.includes(cmp));
+        const scriptSources = $('script[src]').map((_, el) => $(el).attr('src') || '').get();
+        const detectedVendorBundles = scriptSources.filter(src => /vendor|chunk|app|main|bundle|react|vue|angular|next|vite|runtime/i.test(src)).slice(0, 8);
+        const externalFontLinks = $('link[href*="fonts.googleapis.com"], link[href*="use.typekit.net"]').map((_, el) => $(el).attr('href') || '').get();
+        const hasExternalFontCalls = rawLowerHtml.includes('fonts.googleapis.com') || externalFontLinks.length > 0;
+
+        const isClientShell = (
+          rawLowerHtml.includes('id="root"') || 
+          rawLowerHtml.includes('id="app"') || 
+          rawLowerHtml.includes('id="__next"') ||
+          rawLowerHtml.includes('vite/client') ||
+          rawLowerHtml.includes('bundle.js') ||
+          detectedVendorBundles.length > 0
+        );
+        if (isClientShell && (html.length < 3500 || headings.length === 0)) {
+          isSpa = true;
+        }
 
         $('script, style, noscript, svg').remove();
 
@@ -235,17 +251,6 @@ export async function POST(req: NextRequest) {
         ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || '';
 
         headings = $('h1, h2, h3').map((_, el) => $(el).text().trim()).get().filter(t => t.length > 0).slice(0, 10);
-
-        const isClientShell = (
-          rawLowerHtml.includes('id="root"') || 
-          rawLowerHtml.includes('id="app"') || 
-          rawLowerHtml.includes('id="__next"') ||
-          rawLowerHtml.includes('vite/client') ||
-          rawLowerHtml.includes('bundle.js')
-        );
-        if (isClientShell && html.length < 2500 && headings.length === 0) {
-          isSpa = true;
-        }
 
         const allLinks = $('a').map((_, el) => $(el).attr('href') || '').get();
         hasWhatsapp = rawLowerHtml.includes('wa.me') || 
@@ -305,10 +310,9 @@ export async function POST(req: NextRequest) {
         missingAltCount = $('img:not([alt]), img[alt=""]').length;
         hasViewport = $('meta[name="viewport"]').length > 0;
 
-        // Detección profunda de arquitectura técnica y trampas de indexación
         const hasJsLangSwitch = rawLowerHtml.includes('changelang(') || rawLowerHtml.includes('setlang(') || rawLowerHtml.includes('switchlang(');
         const hasHreflang = rawLowerHtml.includes('hreflang');
-        const hasRenderBlockingExternalFonts = rawLowerHtml.includes('fonts.googleapis.com') || rawLowerHtml.includes('font-awesome') || rawLowerHtml.includes('cdnjs.cloudflare.com');
+        const hasRenderBlockingExternalFonts = hasExternalFontCalls || rawLowerHtml.includes('font-awesome') || rawLowerHtml.includes('cdnjs.cloudflare.com');
         const hasSchemaJsonLd = rawLowerHtml.includes('application/ld+json');
 
         bodyTextSnippet = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1500);
@@ -320,7 +324,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Métricas de PageSpeed (Mobile)
     let pagespeedData: { available: boolean; performance?: number; seo?: number; lcp?: string; note?: string } = {
       available: false,
       note: 'Métricas de PageSpeed no aplicables para archivos locales o capturas.',
@@ -328,58 +331,62 @@ export async function POST(req: NextRequest) {
 
     if (tipo_analisis === 'url' && url) {
       try {
-        const psApiKey = process.env.PAGESPEED_API_KEY ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
-        const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=mobile${psApiKey}`;
-        const psRes = await fetch(psUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        const psData = await psRes.json();
-        
-        if (psData.lighthouseResult) {
-          const l = psData.lighthouseResult;
+        const psiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=mobile&category=PERFORMANCE&category=SEO`;
+        const psiController = new AbortController();
+        const psiTimeout = setTimeout(() => psiController.abort(), 8000);
+
+        const psiRes = await fetch(psiUrl, { signal: psiController.signal });
+        clearTimeout(psiTimeout);
+
+        if (psiRes.ok) {
+          const psiJson = await psiRes.json();
+          const perfScore = Math.round((psiJson.lighthouseResult?.categories?.performance?.score || 0) * 100);
+          const seoScore = Math.round((psiJson.lighthouseResult?.categories?.seo?.score || 0) * 100);
+          const lcp = psiJson.lighthouseResult?.audits?.['largest-contentful-paint']?.displayValue || 'N/D';
+
           pagespeedData = {
             available: true,
-            performance: Math.round((l.categories?.performance?.score || 0) * 100),
-            seo: Math.round((l.categories?.seo?.score || 0) * 100),
-            lcp: l.audits?.['largest-contentful-paint']?.displayValue || 'N/A',
+            performance: perfScore,
+            seo: seoScore,
+            lcp: lcp,
+            note: `Performance Mobile: ${perfScore}/100, SEO: ${seoScore}/100, LCP: ${lcp}`
           };
         }
-      } catch {
-        console.log("PageSpeed omitido");
+      } catch (psiErr) {
+        console.warn('PageSpeed API omitido o timeout:', psiErr);
       }
     }
 
-    // 3. Prompt Maestro de Autoridad Digital 360° & Transformación (NEXUS v5.0)
     const speedInfo = pagespeedData.available
-      ? `Rendimiento Mobile: ${pagespeedData.performance}/100, SEO Técnico: ${pagespeedData.seo}/100, Tiempo LCP: ${pagespeedData.lcp}`
-      : `Datos PageSpeed: No aplicables o estimados por estructura.`;
+      ? `PageSpeed Mobile: Rendimiento ${pagespeedData.performance}/100, SEO ${pagespeedData.seo}/100, LCP: ${pagespeedData.lcp}`
+      : 'PageSpeed: No disponible (análisis heurístico)';
 
-    const spaContext = isSpa 
-      ? `⚠️ ARQUITECTURA: SPA con CSR. El HTML inicial entregado por el servidor llega prácticamente vacío. Sin SSR/SSG pre-renderizado.`
-      : `Estructura estándar de servidor detectada.`;
+    const spaContext = isSpa
+      ? '⚠️ AVISO TÉCNICO SPA: Se detectó una aplicación web renderizada en cliente (Client-Side Rendering) con shell vacía o carga pesada de JavaScript.'
+      : 'Renderizado del lado del servidor o HTML estático con contenido parseable.';
 
-    const iframeContext = (hasIframe || html.includes('<iframe') || html.includes('&lt;iframe'))
-      ? `⚠️ ARQUITECTURA IFRAME: Se detecta renderizado o incrustación mediante iframe.`
-      : `No se detectan iframes bloqueantes.`;
-
-    const rgpdAuditContext = `
-    ⚖️ AUDITORÍA LEGAL & RGPD (UE / AEPD):
-    - ¿Tiene enlace visible a Aviso Legal?: ${hasAvisoLegal ? 'Sí' : 'NO (Infracción LSSI Art. 10)'}
-    - ¿Tiene enlace a Política de Privacidad?: ${hasPrivacyPolicy ? 'Sí' : 'NO (Infracción RGPD Art. 13/14)'}
-    - ¿Tiene enlace a Política de Cookies?: ${hasCookiesPolicy ? 'Sí' : 'NO (Infracción LSSI Art. 22.2)'}
-    - ¿Tiene Banner / Plataforma CMP de Cookies detectada?: ${hasCmpBanner ? 'Sí' : 'NO (Infracción crítica si carga telemetría sin consentimiento)'}
-    - ¿Carga Analytics/Pixel antes de obtener consentimiento?: ${telemetryWithoutConsent ? 'SÍ, INFRACCIÓN MUY GRAVE' : 'No detectado o bloqueado'}
-    `;
+    const iframeContext = hasIframe
+      ? '⚠️ AVISO IFRAME: Se detectó uso de iframes para contenido de terceros.'
+      : '';
 
     const technicalAuditContext = `
-    🔍 TELEMETRÍA TÉCNICA PROFUNDA:
-    - ¿Traducción por JavaScript client-side (changeLang)?: ${html.toLowerCase().includes('changelang') ? 'SÍ (Trampa de i18n por JS: Invisible para Googlebot, GPTBot y ClaudeBot)' : 'No'}
-    - ¿Tiene etiquetas hreflang?: ${html.toLowerCase().includes('hreflang') ? 'Sí' : 'NO'}
-    - ¿Carga fuentes/iconos externos bloqueantes (Google Fonts/FontAwesome)?: ${html.toLowerCase().includes('fonts.googleapis.com') || html.toLowerCase().includes('font-awesome') ? 'SÍ (Impacta LCP y transferencia de IPs)' : 'No / Auto-alojado'}
-    - ¿Tiene marcado Schema JSON-LD preexistente?: ${html.toLowerCase().includes('application/ld+json') ? 'Sí' : 'NO (Invisibilidad en SGE/Perplexity)'}
+    - Cambio de idioma por JavaScript (Trampa de indexación): ${html.toLowerCase().includes('changelang(') ? 'Sí (Grave para SEO internacional)' : 'No detectado'}
+    - Etiquetas hreflang presentes: ${html.toLowerCase().includes('hreflang') ? 'Sí' : 'No (Invisibilidad multilingüe)'}
+    - Fuentes externas bloqueantes (Google Fonts/CDN): ${html.toLowerCase().includes('fonts.googleapis.com') ? 'Sí (Retrasa FCP y transfiere IPs sin consentimiento)' : 'No'}
+    - Marcado Schema JSON-LD detectado: ${html.toLowerCase().includes('application/ld+json') ? 'Sí' : 'No (Invisibilidad para IAs)'}
     `;
 
     const visualContext = tipo_analisis === 'screenshot' 
       ? `📸 MODO CAPTURA DE PANTALLA (ANÁLISIS CRO MULTIMODAL): Analiza directamente la imagen adjunta. Evalúa la jerarquía visual del titular, contraste de botones CTAs, legibilidad de textos, espacio en blanco, saturación visual (Ley de Miller), presencia de prueba social y fricción visual para el usuario.`
       : ``;
+
+    const rgpdAuditContext = `
+    - Aviso Legal detectado: ${hasAvisoLegal ? 'Sí' : 'NO (Infracción Art. 10 LSSI)'}
+    - Política de Privacidad detectada: ${hasPrivacyPolicy ? 'Sí' : 'NO (Infracción Art. 13 RGPD)'}
+    - Política de Cookies detectada: ${hasCookiesPolicy ? 'Sí' : 'NO (Infracción Art. 22.2 LSSI)'}
+    - Banner CMP de Consentimiento: ${hasCmpBanner ? 'Sí' : 'NO'}
+    - Telemetría/Scripts disparados sin consentimiento: ${telemetryWithoutConsent ? 'Sí (Infracción Grave)' : 'No'}
+    `;
 
     const webAnalysisData = `
     - Modo de Análisis: ${tipo_analisis === 'url' ? 'URL Online' : tipo_analisis === 'html_file' ? 'Archivo index.html Local' : 'Captura de Pantalla / Screenshot'}
@@ -419,17 +426,22 @@ Tu misión es analizar la presencia digital de esta empresa con los datos técni
    - Protocolo Anti-Ban WhatsApp: El texto exacto para pedirle al cliente que nos agregue a su libreta de contactos antes de interactuar por WhatsApp, protegiendo 100% la cuenta de WhatsApp Business contra reportes de spam.
 3. CALCULADORA DE DINERO PERDIDO AL MES (Fuga Financiera Oculta): Cálculo monetario mensual y anual realista de lo que el cliente pierde por los fallos detectados.
 4. GUIÓN DE LLAMADA / VIDEOLLAMADA CONSULTIVA DE 15 MINUTOS: Estructura exacta minuto a minuto (0-3 min Apertura, 3-8 min Diagnóstico sin culpas, 8-12 min Solución Amable, 12-15 min Cierre con ROI).
-5. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS 5.0): Matriz GAP de 5 capas de élite (Privacidad, CRO Fogg B=MAP, GEO/LLMs, Neuro-UI Ley de Miller, Eco-Performance WPO), Proyección Financiera de ROI en $, Schema JSON-LD con Entidades y Wikidata IDs, 2 Experimentos A/B Validables, y 1 Propuesta de Lead Magnet Técnico Interactivo ("Widget de Amabilidad Digital") en Vanilla JS < 4KB.
+5. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS 5.0):
+   - Matriz GAP de 5 capas de élite (Privacidad & Ética, CRO Fogg B=MAP con análisis de comoditización vs High-Ticket, GEO/LLMs con Wikidata IDs, Neuro-UI Ley de Miller, Eco-Performance WPO con evaluación de arquitectura JS/SPA, CPU-bound y TBT vs 0KB JS).
+   - Proyección Financiera de ROI en $ (3 escenarios con ticket medio y volumen de clientes).
+   - Schema JSON-LD hiper-enriquecido: @type "ProfessionalService", address, geo (GeoCoordinates), openingHoursSpecification, sameAs, knowsAbout y hasOfferCatalog con 2 servicios de alto valor con descripciones.
+   - 2 Experimentos A/B Validables (Variable A Control, Variable B Variante, Métrica de éxito).
+   - 1 Propuesta de Lead Magnet Técnico Interactivo ("Widget de Amabilidad Digital") en Vanilla JS < 4KB.
 6. MÓDULO LEGAL RGPD & SANCIONES AEPD: Diagnóstico riguroso de riesgos de sanción (1.500€ a 30.000€+), artículos vulnerados y gancho de urgencia comercial.
 
 DATOS DEL ANÁLISIS:
 ${webAnalysisData}
 
-INSTRUCCIONES CLAVE DE CALIDAD:
+INSTRUCCIONES CLAVE DE CALIDAD Y CONSULTORÍA DE ÉLITE:
 - Sé implacable y honesto con la nota (0-100 y nota sobre 10).
-- "The Elephant in the Room": Identifica con precisión quirúrgica el fallo estratégico o técnico oculto más grave que frena el negocio.
+- "The Elephant in the Room": Identifica con precisión quirúrgica el fallo estratégico o técnico oculto más grave (por ejemplo, la paradoja de vender alta tecnología/sostenibilidad en un SPA que carga JavaScript pesado bloqueando CPU, o tener un catálogo comoditizado de servicios baratos en lugar de una propuesta de alto valor).
 - En la Matriz GAP cubre las 5 capas de élite con hallazgo, impacto técnico, impacto en negocio ($) y solución.
-- En GEO (SEO para IAs), genera entidades semánticas con sus IDs de Wikidata si corresponden, frase exacta de citabilidad para rastreadores LLM y código JSON-LD completo.
+- En GEO (SEO para IAs), genera entidades semánticas con sus IDs de Wikidata, frase exacta de citabilidad para rastreadores LLM y código JSON-LD enriquecido con "hasOfferCatalog" y "knowsAbout".
 - En Experimentos A/B, formula 2 hipótesis de testing validables con Variables A y B y métrica de éxito estimada.
 - En Lead Magnet Técnico, propone una herramienta interactiva ("Widget de Amabilidad Digital") ligera en Vanilla JS para captar leads MoFu sin cookies.
 

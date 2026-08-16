@@ -610,7 +610,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
 - **Minuto 12 a 15 (Cierre de Presupuesto con ROI):** ${res.guion_llamada.min_12_15_cierre}
 
 ---
-` : ''}*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.08*
+` : ''}*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.09*
 `;
   };
 
@@ -766,7 +766,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.08</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.09</span>
             </div>
           </div>
         </footer>
@@ -2237,7 +2237,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               </div>
               <div className="text-right text-[11px] text-slate-600">
                 <div><strong>Fecha:</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                <div><strong>Versión:</strong> v.08</div>
+                <div><strong>Versión:</strong> v.09</div>
               </div>
             </div>
 
@@ -2576,7 +2576,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
             {/* Pie de Página Oficial en PDF */}
             <div className="border-t-2 border-[#1B4332] pt-3 flex items-center justify-between text-[10px] text-slate-500">
               <div>© {new Date().getFullYear()} Marketing Amable • Todos los derechos reservados.</div>
-              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.08</span></div>
+              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.09</span></div>
             </div>
 
           </div>
@@ -2603,7 +2603,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.08</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.09</span>
           </div>
         </div>
       </footer>
