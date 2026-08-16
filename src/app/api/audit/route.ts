@@ -114,10 +114,18 @@ export async function POST(req: NextRequest) {
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    const { url, industria } = await req.json();
-    const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+    const { 
+      url, 
+      industria, 
+      tipo_analisis = 'url', 
+      html_content, 
+      image_base64, 
+      image_mime_type 
+    } = await req.json();
 
-    // 1. Scraping enriquecido y resiliente del HTML
+    const cleanUrl = url ? (url.startsWith('http') ? url : `https://${url}`) : (tipo_analisis === 'html_file' ? 'Archivo index.html (Local)' : 'Captura de Pantalla');
+
+    // 1. Scraping enriquecido del HTML (para URL o archivo HTML subido)
     let html = '';
     let isSpa = false;
     let title = '';
@@ -145,168 +153,167 @@ export async function POST(req: NextRequest) {
     let hasCmpBanner = false;
     let telemetryWithoutConsent = false;
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+    if (tipo_analisis === 'html_file' && html_content) {
+      html = html_content;
+    } else if (tipo_analisis === 'url' && url) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      const htmlRes = await fetch(cleanUrl, {
-        signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-        },
-      });
-      clearTimeout(timeoutId);
-
-      html = await htmlRes.text();
-      const rawLowerHtml = html.toLowerCase();
-      const $ = cheerio.load(html);
-
-      // Detección de Plataformas de Gestión de Consentimiento (CMP) y Banners
-      const cmpKeywords = [
-        'cookiebot', 'complianz', 'onetrust', 'iubenda', 'cookieyes', 'klaro',
-        'tarteaucitron', 'usercentrics', 'axeptio', 'cookie-law-info', 'borlabs-cookie',
-        'moove_gdpr', 'cmplz', 'cc-window', 'cookie-notice', 'termsfeed', 'quantcast',
-        'didomi', 'osano', 'cookie-script', 'cookiescript', 'gdpr-cookie-consent'
-      ];
-      hasCmpBanner = cmpKeywords.some(cmp => rawLowerHtml.includes(cmp));
-
-      // Limpiar etiquetas no informativas para extraer texto limpio
-      $('script, style, noscript, svg').remove();
-
-      title = $('title').text().trim() || 'Sin título';
-      metaDesc = $('meta[name="description"]').attr('content')?.trim() || 
-                 $('meta[property="og:description"]').attr('content')?.trim() || 'Sin descripción';
-      ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || '';
-      ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || '';
-
-      headings = $('h1, h2, h3').map((_, el) => $(el).text().trim()).get().filter(t => t.length > 0).slice(0, 10);
-
-      // Detección de SPA (Single Page Apps con contenido en cliente como React/Vite/Vue)
-      const isClientShell = (
-        rawLowerHtml.includes('id="root"') || 
-        rawLowerHtml.includes('id="app"') || 
-        rawLowerHtml.includes('id="__next"') ||
-        rawLowerHtml.includes('vite/client') ||
-        rawLowerHtml.includes('bundle.js')
-      );
-      if (isClientShell && html.length < 2500 && headings.length === 0) {
-        isSpa = true;
+        const htmlRes = await fetch(cleanUrl, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+          },
+        });
+        clearTimeout(timeoutId);
+        html = await htmlRes.text();
+      } catch (e) {
+        console.warn(`No se pudo scrapear directamente ${cleanUrl}:`, e);
       }
-
-      // Canales de contacto
-      const allLinks = $('a').map((_, el) => $(el).attr('href') || '').get();
-      hasWhatsapp = rawLowerHtml.includes('wa.me') || 
-                    rawLowerHtml.includes('api.whatsapp.com') || 
-                    rawLowerHtml.includes('whatsapp') ||
-                    allLinks.some(h => h.includes('wa.me') || h.includes('whatsapp'));
-      
-      hasPhone = allLinks.some(h => h.startsWith('tel:')) || 
-                 /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/.test(html);
-
-      hasEmail = allLinks.some(h => h.startsWith('mailto:')) || 
-                 /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(html);
-
-      hasGoogleMaps = allLinks.some(h => h.includes('maps.google') || h.includes('goo.gl/maps') || h.includes('google.com/maps'));
-
-      // Redes sociales
-      const socialDomains = ['instagram.com', 'facebook.com', 'linkedin.com', 'tiktok.com', 'twitter.com', 'x.com'];
-      socialLinks = allLinks.filter(h => socialDomains.some(domain => h.includes(domain))).slice(0, 5);
-
-      // Formularios y CTAs
-      hasForms = $('form').length > 0;
-      ctaButtons = $('button, a[class*="btn"], a[class*="button"], a[class*="cta"]')
-        .map((_, el) => $(el).text().trim())
-        .get()
-        .filter(t => t.length > 1 && t.length < 40)
-        .slice(0, 6);
-
-      // Analytics y píxeles
-      hasAnalytics = rawLowerHtml.includes('gtag') || 
-                     rawLowerHtml.includes('google-analytics') || 
-                     rawLowerHtml.includes('gtm.js') || 
-                     rawLowerHtml.includes('fbq(') ||
-                     rawLowerHtml.includes('fbevents.js');
-
-      // Telemetría sin consentimiento previo
-      telemetryWithoutConsent = hasAnalytics && !hasCmpBanner;
-
-      // Detección de Enlaces Legales (RGPD & LSSI)
-      const allLinksWithText = $('a').map((_, el) => ({
-        href: ($(el).attr('href') || '').toLowerCase(),
-        text: $(el).text().toLowerCase().trim()
-      })).get();
-
-      hasAvisoLegal = allLinksWithText.some(l => 
-        l.href.includes('aviso-legal') || l.href.includes('aviso_legal') || l.href.includes('legal-notice') ||
-        l.text.includes('aviso legal') || l.text.includes('información legal') || l.text.includes('menciones legales')
-      );
-
-      hasPrivacyPolicy = allLinksWithText.some(l => 
-        l.href.includes('privacidad') || l.href.includes('privacy') || l.href.includes('politica-privacidad') || l.href.includes('politica-de-privacidad') ||
-        l.text.includes('privacidad') || l.text.includes('privacy') || l.text.includes('protección de datos')
-      );
-
-      hasCookiesPolicy = allLinksWithText.some(l => 
-        l.href.includes('cookie') || l.href.includes('cookies') || l.href.includes('politica-cookies') || l.href.includes('politica-de-cookies') ||
-        l.text.includes('cookie') || l.text.includes('cookies')
-      );
-
-      // Detección de iframes
-      const iframes = $('iframe').map((_, el) => $(el).attr('src') || '').get().filter(s => s.length > 0);
-      hasIframe = iframes.length > 0;
-
-      // Accesibilidad y estructura básica
-      missingAltCount = $('img:not([alt]), img[alt=""]').length;
-      hasViewport = $('meta[name="viewport"]').length > 0;
-
-      // Resumen textual del cuerpo
-      bodyTextSnippet = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1200);
-
-    } catch (scrapingErr) {
-      const err = scrapingErr as Error;
-      console.warn('Error al hacer scraping de la web:', err.message);
-      bodyTextSnippet = 'No se pudo descargar el contenido HTML de la web directamente.';
     }
 
-    // 2. Métricas de PageSpeed (Mobile) con API Key opcional y manejo de cuota
+    if (html) {
+      try {
+        const rawLowerHtml = html.toLowerCase();
+        const $ = cheerio.load(html);
+
+        const cmpKeywords = [
+          'cookiebot', 'complianz', 'onetrust', 'iubenda', 'cookieyes', 'klaro',
+          'tarteaucitron', 'usercentrics', 'axeptio', 'cookie-law-info', 'borlabs-cookie',
+          'moove_gdpr', 'cmplz', 'cc-window', 'cookie-notice', 'termsfeed', 'quantcast',
+          'didomi', 'osano', 'cookie-script', 'cookiescript', 'gdpr-cookie-consent'
+        ];
+        hasCmpBanner = cmpKeywords.some(cmp => rawLowerHtml.includes(cmp));
+
+        $('script, style, noscript, svg').remove();
+
+        title = $('title').first().text().trim() || 'Sin título';
+        metaDesc = $('meta[name="description"]').attr('content')?.trim() || 
+                   $('meta[property="og:description"]').attr('content')?.trim() || 'Sin descripción';
+        ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || '';
+        ogDesc = $('meta[property="og:description"]').attr('content')?.trim() || '';
+
+        headings = $('h1, h2, h3').map((_, el) => $(el).text().trim()).get().filter(t => t.length > 0).slice(0, 10);
+
+        const isClientShell = (
+          rawLowerHtml.includes('id="root"') || 
+          rawLowerHtml.includes('id="app"') || 
+          rawLowerHtml.includes('id="__next"') ||
+          rawLowerHtml.includes('vite/client') ||
+          rawLowerHtml.includes('bundle.js')
+        );
+        if (isClientShell && html.length < 2500 && headings.length === 0) {
+          isSpa = true;
+        }
+
+        const allLinks = $('a').map((_, el) => $(el).attr('href') || '').get();
+        hasWhatsapp = rawLowerHtml.includes('wa.me') || 
+                      rawLowerHtml.includes('api.whatsapp.com') || 
+                      rawLowerHtml.includes('whatsapp') ||
+                      allLinks.some(h => h.includes('wa.me') || h.includes('whatsapp'));
+        
+        hasPhone = allLinks.some(h => h.startsWith('tel:')) || 
+                   /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b/.test(html);
+
+        hasEmail = allLinks.some(h => h.startsWith('mailto:')) || 
+                   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(html);
+
+        hasGoogleMaps = allLinks.some(h => h.includes('maps.google') || h.includes('goo.gl/maps') || h.includes('google.com/maps'));
+
+        const socialDomains = ['instagram.com', 'facebook.com', 'linkedin.com', 'tiktok.com', 'twitter.com', 'x.com'];
+        socialLinks = allLinks.filter(h => socialDomains.some(domain => h.includes(domain))).slice(0, 5);
+
+        hasForms = $('form').length > 0;
+        ctaButtons = $('button, a[class*="btn"], a[class*="button"], a[class*="cta"]')
+          .map((_, el) => $(el).text().trim())
+          .get()
+          .filter(t => t.length > 1 && t.length < 40)
+          .slice(0, 6);
+
+        hasAnalytics = rawLowerHtml.includes('gtag') || 
+                       rawLowerHtml.includes('google-analytics') || 
+                       rawLowerHtml.includes('gtm.js') || 
+                       rawLowerHtml.includes('fbq(') ||
+                       rawLowerHtml.includes('fbevents.js');
+
+        telemetryWithoutConsent = hasAnalytics && !hasCmpBanner;
+
+        const allLinksWithText = $('a').map((_, el) => ({
+          href: ($(el).attr('href') || '').toLowerCase(),
+          text: $(el).text().toLowerCase().trim()
+        })).get();
+
+        hasAvisoLegal = allLinksWithText.some(l => 
+          l.href.includes('aviso-legal') || l.href.includes('aviso_legal') || l.href.includes('legal-notice') ||
+          l.text.includes('aviso legal') || l.text.includes('información legal') || l.text.includes('menciones legales')
+        );
+
+        hasPrivacyPolicy = allLinksWithText.some(l => 
+          l.href.includes('privacidad') || l.href.includes('privacy') || l.href.includes('politica-privacidad') || l.href.includes('politica-de-privacidad') ||
+          l.text.includes('privacidad') || l.text.includes('privacy') || l.text.includes('protección de datos')
+        );
+
+        hasCookiesPolicy = allLinksWithText.some(l => 
+          l.href.includes('cookie') || l.href.includes('cookies') || l.href.includes('politica-cookies') || l.href.includes('politica-de-cookies') ||
+          l.text.includes('cookie') || l.text.includes('cookies')
+        );
+
+        const iframes = $('iframe').map((_, el) => $(el).attr('src') || '').get().filter(s => s.length > 0);
+        hasIframe = iframes.length > 0;
+
+        missingAltCount = $('img:not([alt]), img[alt=""]').length;
+        hasViewport = $('meta[name="viewport"]').length > 0;
+
+        bodyTextSnippet = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1200);
+
+      } catch (scrapingErr) {
+        const err = scrapingErr as Error;
+        console.warn('Error al parsear el HTML:', err.message);
+        bodyTextSnippet = 'No se pudo parsear completamente el HTML.';
+      }
+    }
+
+    // 2. Métricas de PageSpeed (Mobile)
     let pagespeedData: { available: boolean; performance?: number; seo?: number; lcp?: string; note?: string } = {
       available: false,
-      note: 'Métricas de PageSpeed no disponibles (límite de cuota temporal de Google).',
+      note: 'Métricas de PageSpeed no aplicables para archivos locales o capturas.',
     };
 
-    try {
-      const psApiKey = process.env.PAGESPEED_API_KEY ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
-      const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=mobile${psApiKey}`;
-      
-      const psRes = await fetch(psUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      const psData = await psRes.json();
-      
-      if (psData.lighthouseResult) {
-        const l = psData.lighthouseResult;
-        pagespeedData = {
-          available: true,
-          performance: Math.round((l.categories?.performance?.score || 0) * 100),
-          seo: Math.round((l.categories?.seo?.score || 0) * 100),
-          lcp: l.audits?.['largest-contentful-paint']?.displayValue || 'N/A',
-        };
+    if (tipo_analisis === 'url' && url) {
+      try {
+        const psApiKey = process.env.PAGESPEED_API_KEY ? `&key=${process.env.PAGESPEED_API_KEY}` : '';
+        const psUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(cleanUrl)}&strategy=mobile${psApiKey}`;
+        const psRes = await fetch(psUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const psData = await psRes.json();
+        
+        if (psData.lighthouseResult) {
+          const l = psData.lighthouseResult;
+          pagespeedData = {
+            available: true,
+            performance: Math.round((l.categories?.performance?.score || 0) * 100),
+            seo: Math.round((l.categories?.seo?.score || 0) * 100),
+            lcp: l.audits?.['largest-contentful-paint']?.displayValue || 'N/A',
+          };
+        }
+      } catch {
+        console.log("PageSpeed omitido");
       }
-    } catch {
-      console.log("PageSpeed falló o sin cuota, continuando sin él");
     }
 
-    // 3. Prompt Maestro para Gemini (Framework NEXUS 360 + Outreach Pitch + RGPD & Multas)
+    // 3. Prompt Maestro para Gemini
     const speedInfo = pagespeedData.available
       ? `Rendimiento Mobile: ${pagespeedData.performance}/100, SEO Técnico: ${pagespeedData.seo}/100, Tiempo LCP: ${pagespeedData.lcp}`
-      : `Datos PageSpeed: No disponibles en esta prueba (evalúa basándote en la arquitectura y peso del HTML).`;
+      : `Datos PageSpeed: No aplicables o estimados por estructura.`;
 
     const spaContext = isSpa 
-      ? `⚠️ ARQUITECTURA: SPA (Single Page Application en React/Vue/Vite) con CSR. El HTML inicial entregado por el servidor llega prácticamente vacío (título '${title}'). Sin SSR/SSG pre-renderizado, Google y LLMs indexan una página en blanco.`
+      ? `⚠️ ARQUITECTURA: SPA con CSR. El HTML inicial entregado por el servidor llega prácticamente vacío. Sin SSR/SSG pre-renderizado.`
       : `Estructura estándar de servidor detectada.`;
 
     const iframeContext = (hasIframe || html.includes('<iframe') || html.includes('&lt;iframe'))
-      ? `⚠️ ARQUITECTURA IFRAME: Se detecta renderizado o incrustación mediante iframe. Esto bloquea la transferencia de autoridad SEO y daña la experiencia móvil.`
+      ? `⚠️ ARQUITECTURA IFRAME: Se detecta renderizado o incrustación mediante iframe.`
       : `No se detectan iframes bloqueantes.`;
 
     const rgpdAuditContext = `
@@ -315,11 +322,16 @@ export async function POST(req: NextRequest) {
     - ¿Tiene enlace a Política de Privacidad?: ${hasPrivacyPolicy ? 'Sí' : 'NO (Infracción RGPD Art. 13/14)'}
     - ¿Tiene enlace a Política de Cookies?: ${hasCookiesPolicy ? 'Sí' : 'NO (Infracción LSSI Art. 22.2)'}
     - ¿Tiene Banner / Plataforma CMP de Cookies detectada?: ${hasCmpBanner ? 'Sí' : 'NO (Infracción crítica si carga telemetría sin consentimiento)'}
-    - ¿Carga Analytics/Pixel antes de obtener consentimiento?: ${telemetryWithoutConsent ? 'SÍ, INFRACCIÓN MUY GRAVE (Dispara scripts de rastreo en el HTML inicial sin bloqueo previo)' : 'No detectado o bloqueado'}
+    - ¿Carga Analytics/Pixel antes de obtener consentimiento?: ${telemetryWithoutConsent ? 'SÍ, INFRACCIÓN MUY GRAVE' : 'No detectado o bloqueado'}
     `;
 
+    const visualContext = tipo_analisis === 'screenshot' 
+      ? `📸 MODO CAPTURA DE PANTALLA (ANÁLISIS CRO MULTIMODAL): Analiza directamente la imagen adjunta. Evalúa la jerarquía visual del titular, contraste de botones CTAs, legibilidad de textos, espacio en blanco, saturación visual, presencia de prueba social y fricción visual para el usuario.`
+      : ``;
+
     const webAnalysisData = `
-    - URL: ${cleanUrl}
+    - Modo de Análisis: ${tipo_analisis === 'url' ? 'URL Online' : tipo_analisis === 'html_file' ? 'Archivo index.html Local' : 'Captura de Pantalla / Screenshot'}
+    - Nombre / URL: ${cleanUrl}
     - Nicho / Industria: ${industria || 'Negocio Local / Servicios Profesionales'}
     - Título HTML: "${title}"
     - Meta Descripción: "${metaDesc}"
@@ -340,11 +352,12 @@ export async function POST(req: NextRequest) {
     - ${speedInfo}
     - ${spaContext}
     - ${iframeContext}
+    ${visualContext}
     ${rgpdAuditContext}
     `;
 
     const prompt = `Eres un consultor de élite en CRO (Conversión), Transformación Digital, Compliance Legal Web (RGPD / AEPD) y Estrategia Comercial de Alto Valor (Nivel McKinsey / Agencia Élite).
-Tu misión es analizar la presencia digital de esta empresa con los datos técnicos y legales extraídos y generar un ENTREGABLE INTEGRAL:
+Tu misión es analizar la presencia digital de esta empresa con los datos técnicos, visuales y legales proporcionados y generar un ENTREGABLE INTEGRAL:
 1. PITCH DE VENTA RÁPIDO (WhatsApp / Outreach): Directo, educado, sin tecnicismos abrumadores, enfocado en abrir la conversación ofreciendo resolver el problema crítico en menos de 24h.
 2. GENERADOR DE COLD EMAIL B2B (Email en frío de élite): 3 asuntos con más del 60% de tasa de apertura estimada (curiosidad, sin palabras de spam), plantilla con estructura AIDA (Atención, Interés, Deseo, Acción) y plantilla con estructura PAS (Problema, Agitación, Solución) con llamada a la acción suave (Soft CTA).
 3. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS v5.0): Una auditoría holística de máxima sofisticación con Matriz GAP, Proyección Financiera de ROI en $, Schema JSON-LD para IAs (GEO), Copys reescritos, Armas contra Objeciones y Roadmap.
@@ -355,13 +368,13 @@ ${webAnalysisData}
 
 INSTRUCCIONES CLAVE:
 - Sé implacable y honesto con la nota (0-100 y nota sobre 10).
-- Si el título es 'frontend' o genérico, o la web es una SPA vacía / iframe, destácalo como "The Elephant in the Room" (el gran fallo que destruye la credibilidad).
-- En Cold Email B2B, redacta asuntos ultra-personalizados y cuerpos hiper-persuasivos pero profesionales, sin sonar a venta agresiva ni usar tecnicismos aburridos.
-- En RGPD, evalúa con rigor según la normativa española/europea (LSSI y RGPD): si falta Aviso Legal, Privacidad, Cookies o si dispara telemetría sin CMP, marca riesgo Alto o Crítico y estima la sanción real habitual en inspecciones de la AEPD.
-- En la Proyección de ROI, calcula cifras monetarias en USD realistas para la industria (asume tráfico mensual estándar de 1,000 a 5,000 visitas y ticket medio de servicio).
-- En GEO (SEO para IAs), genera las entidades y el código JSON-LD Schema.org completo y válido para este tipo de negocio.
+- Si el título es genérico o la web tiene fallos visuales/técnicos, destácalo como "The Elephant in the Room" (el gran fallo que destruye la credibilidad).
+- En Cold Email B2B, redacta asuntos ultra-personalizados y cuerpos hiper-persuasivos pero profesionales.
+- En RGPD, evalúa con rigor según la normativa europea (LSSI y RGPD): si falta Aviso Legal, Privacidad, Cookies o si dispara telemetría sin CMP, marca riesgo Alto o Crítico y estima la sanción real.
+- En la Proyección de ROI, calcula cifras monetarias en USD realistas para la industria.
+- En GEO (SEO para IAs), genera las entidades y el código JSON-LD Schema.org completo y válido.
 - En Copys Reescritos, redacta 3 enfoques psicológicos de alto impacto: 1) B2B Directo/Autoridad, 2) Exclusividad VIP High-Ticket, 3) Reducción de Tiempo/Fricción.
-- En Armas de Venta, incluye las 2 objeciones más frecuentes del dueño ("ya tengo boca a boca", "yo la veo bien en mi móvil") con sus contramedidas letales.
+- En Armas de Venta, incluye las 2 objeciones más frecuentes del dueño con sus contramedidas letales.
 
 Devuelve estrictamente un JSON válido con esta estructura:
 {
@@ -424,21 +437,21 @@ Devuelve estrictamente un JSON válido con esta estructura:
       "solucion": "..."
     },
     {
-      "capa": "GEO (SEO para IAs / LLMs)",
+      "capa": "GEO / Entidades LLM",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
       "solucion": "..."
     },
     {
-      "capa": "Neuro-UI & Carga Cognitiva",
+      "capa": "Velocidad & Core Web Vitals",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
       "solucion": "..."
     },
     {
-      "capa": "Rendimiento & Código",
+      "capa": "Copywriting de Autoridad",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
@@ -446,34 +459,33 @@ Devuelve estrictamente un JSON válido con esta estructura:
     }
   ],
   "proyeccion_roi": {
-    "trafico_mensual": "ej: 3,000 visitas",
-    "ticket_medio": "ej: $1,500 USD",
-    "conversion_actual": "ej: 0.4%",
-    "escenario_pesimista": "+$3,000 USD/mes",
-    "escenario_realista": "+$9,000 USD/mes (+$108,000 USD anuales)",
-    "escenario_optimista": "+$18,000 USD/mes",
-    "conclusion": "Una optimización de fricción cubre con creces cualquier inversión de rediseño."
+    "trafico_mensual": "ej: 3,000 visitas/mes",
+    "ticket_medio": "ej: $1,200",
+    "conversion_actual": "ej: 1.0% (30 clientes = $36,000/mes)",
+    "escenario_pesimista": "+$1,800/mes (+5% conversión)",
+    "escenario_realista": "+$5,400/mes (+15% conversión)",
+    "escenario_optimista": "+$10,800/mes (+30% conversión)",
+    "conclusion": "Explicación de cómo la inversión se amortiza rápidamente."
   },
   "geo_schema": {
-    "entidades": ["Entidad 1", "Entidad 2", "Entidad 3", "Entidad 4", "Entidad 5"],
-    "frase_citabilidad": "Frase de posicionamiento semántico exacta para ChatGPT/Perplexity/Gemini...",
-    "json_ld_code": {
+    "entidades": ["Entidad 1", "Entidad 2", "Entidad 3"],
+    "frase_citabilidad": "Frase de posicionamiento para que ChatGPT/Perplexity citen a esta empresa como referente.",
+    "json_ld": {
       "@context": "https://schema.org",
-      "@type": "MedicalBusiness o ProfessionalService o LocalBusiness",
-      "name": "Nombre del negocio",
-      "description": "Breve descripción",
-      "telephone": "+34...",
-      "priceRange": "$$$$"
+      "@type": "LocalBusiness",
+      "name": "Nombre Negocio",
+      "description": "...",
+      "url": "${cleanUrl}"
     }
   },
   "copys_reescritos": [
     {
-      "enfoque": "Directo al Grano & Autoridad B2B",
+      "enfoque": "B2B Directo & Autoridad",
       "headline": "...",
       "subheadline": "..."
     },
     {
-      "enfoque": "Exclusividad & Aspiracional (VIP High-Ticket)",
+      "enfoque": "Exclusividad VIP High-Ticket",
       "headline": "...",
       "subheadline": "..."
     },
@@ -504,12 +516,26 @@ Devuelve estrictamente un JSON válido con esta estructura:
   ]
 }`;
 
-    // 4. Llamada a Gemini con forzado de JSON nativo y fallback
+    // 4. Llamada a Gemini con soporte de Imagen Multimodal
     let response;
+    let geminiContents: unknown = prompt;
+    if (tipo_analisis === 'screenshot' && image_base64) {
+      const cleanBase64 = image_base64.replace(/^data:image\/\w+;base64,/, '');
+      geminiContents = [
+        {
+          inlineData: {
+            data: cleanBase64,
+            mimeType: image_mime_type || 'image/png',
+          },
+        },
+        prompt,
+      ];
+    }
+
     try {
       response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: prompt,
+        contents: geminiContents as string,
         config: {
           responseMimeType: 'application/json',
           maxOutputTokens: 8192,
@@ -519,7 +545,7 @@ Devuelve estrictamente un JSON válido con esta estructura:
       console.warn('Fallback a gemini-flash-latest por error en 2.5-flash:', modelErr);
       response = await ai.models.generateContent({
         model: 'gemini-flash-latest',
-        contents: prompt,
+        contents: geminiContents as string,
         config: {
           responseMimeType: 'application/json',
           maxOutputTokens: 8192,

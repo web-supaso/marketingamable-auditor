@@ -25,7 +25,13 @@ import {
   Lock,
   LogOut,
   Eye,
-  EyeOff
+  EyeOff,
+  Globe,
+  FileCode,
+  Camera,
+  Upload,
+  X,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface GapRow {
@@ -155,7 +161,14 @@ export default function Home() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  const [inputMode, setInputMode] = useState<'url' | 'html_file' | 'screenshot'>('url');
   const [url, setUrl] = useState('');
+  const [htmlFileName, setHtmlFileName] = useState('');
+  const [htmlContent, setHtmlContent] = useState('');
+  const [screenshotPreview, setScreenshotPreview] = useState('');
+  const [screenshotBase64, setScreenshotBase64] = useState('');
+  const [screenshotMime, setScreenshotMime] = useState('image/png');
+
   const [industria, setIndustria] = useState('Clínica Dental / Salud');
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<AuditResult | null>(null);
@@ -240,8 +253,53 @@ export default function Home() {
       .catch(() => {});
   };
 
+  const handleHtmlFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHtmlFileName(file.name);
+    if (!url) setUrl(file.name.replace(/\.[^/.]+$/, ''));
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setHtmlContent((event.target?.result as string) || '');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScreenshotMime(file.type || 'image/png');
+    if (!url) setUrl(file.name.replace(/\.[^/.]+$/, ''));
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = (event.target?.result as string) || '';
+      setScreenshotPreview(result);
+      setScreenshotBase64(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearHtmlFile = () => {
+    setHtmlFileName('');
+    setHtmlContent('');
+  };
+
+  const clearScreenshot = () => {
+    setScreenshotPreview('');
+    setScreenshotBase64('');
+  };
+
   const handleAudit = async () => {
-    if (!url) return;
+    if (inputMode === 'url' && !url.trim()) return;
+    if (inputMode === 'html_file' && !htmlContent.trim()) {
+      setError('Por favor, selecciona o sube un archivo .html para auditar.');
+      return;
+    }
+    if (inputMode === 'screenshot' && !screenshotBase64) {
+      setError('Por favor, sube una captura de pantalla para auditar con IA Vision.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResultado(null);
@@ -250,7 +308,14 @@ export default function Home() {
       const res = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, industria }),
+        body: JSON.stringify({ 
+          url: url.trim(), 
+          industria,
+          tipo_analisis: inputMode,
+          html_content: htmlContent,
+          image_base64: screenshotBase64,
+          image_mime_type: screenshotMime
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -258,11 +323,11 @@ export default function Home() {
         setActiveTab('outreach');
         refreshHistorial();
       } else {
-        setError(data.error || 'Error al analizar la web');
+        setError(data.error || 'Error al procesar el análisis.');
       }
     } catch (err: unknown) {
       const errorObj = err as Error;
-      setError(errorObj?.message || 'Error de conexión con el servidor. Revisa tu API Key de Gemini en .env.local.');
+      setError(errorObj?.message || 'Error de conexión con el servidor. Revisa tu API Key de Gemini.');
     } finally {
       setLoading(false);
     }
@@ -459,20 +524,158 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
 
         {/* Formulario de Entrada */}
         <div className="bg-[#121212] p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 mb-8">
+          
+          {/* Selector de Modo de Análisis (3 Opciones) */}
+          <div className="mb-6">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2.5">
+              Modalidad de Diagnóstico
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1 bg-[#0D0D0D] rounded-xl border border-white/10">
+              <button
+                type="button"
+                onClick={() => setInputMode('url')}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  inputMode === 'url'
+                    ? 'bg-[#1B4332] text-[#D8F3DC] shadow-sm border border-[#D8F3DC]/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <Globe size={15} />
+                <span>1. URL en Vivo</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setInputMode('html_file')}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  inputMode === 'html_file'
+                    ? 'bg-[#1B4332] text-[#D8F3DC] shadow-sm border border-[#D8F3DC]/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <FileCode size={15} />
+                <span>2. Archivo index.html</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setInputMode('screenshot')}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  inputMode === 'screenshot'
+                    ? 'bg-[#1B4332] text-[#D8F3DC] shadow-sm border border-[#D8F3DC]/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                }`}
+              >
+                <Camera size={15} />
+                <span>3. Captura / IA Vision</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Campos dinámicos según el modo */}
           <div className="grid md:grid-cols-3 gap-4 mb-5">
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                URL del Negocio / Cliente Prospecto
-              </label>
-              <input 
-                type="text" 
-                placeholder="ej: clinicadental.com o https://..." 
-                className="w-full p-3.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition font-mono text-sm"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAudit()}
-              />
+              {inputMode === 'url' && (
+                <>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                    URL del Negocio / Cliente Prospecto
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="ej: clinicadental.com o https://..." 
+                    className="w-full p-3.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition font-mono text-sm"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAudit()}
+                  />
+                </>
+              )}
+
+              {inputMode === 'html_file' && (
+                <>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                    Cargar Archivo index.html (Local / Desarrollo)
+                  </label>
+                  {htmlFileName ? (
+                    <div className="flex items-center justify-between p-3 bg-[#0D0D0D] border border-emerald-500/30 rounded-xl">
+                      <div className="flex items-center gap-2.5 text-sm text-emerald-300 font-mono overflow-hidden">
+                        <FileCode size={18} className="shrink-0 text-[#D8F3DC]" />
+                        <span className="truncate">{htmlFileName}</span>
+                        <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded shrink-0">HTML Listo</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearHtmlFile}
+                        className="text-slate-400 hover:text-rose-400 p-1 transition cursor-pointer"
+                        title="Eliminar archivo"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center p-4 bg-[#0D0D0D] border-2 border-dashed border-white/15 hover:border-[#D8F3DC]/50 rounded-xl cursor-pointer transition group">
+                      <Upload size={22} className="text-slate-400 group-hover:text-[#D8F3DC] transition mb-1" />
+                      <span className="text-xs font-semibold text-slate-300 group-hover:text-white">
+                        Haz clic para seleccionar tu archivo <span className="text-[#D8F3DC]">index.html</span> o .htm
+                      </span>
+                      <span className="text-[10px] text-slate-500 mt-0.5">Se procesará de forma segura directamente</span>
+                      <input 
+                        type="file" 
+                        accept=".html,.htm" 
+                        className="hidden" 
+                        onChange={handleHtmlFileUpload} 
+                      />
+                    </label>
+                  )}
+                </>
+              )}
+
+              {inputMode === 'screenshot' && (
+                <>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                    Captura de Pantalla / Screenshot (IA Vision)
+                  </label>
+                  {screenshotPreview ? (
+                    <div className="flex items-center justify-between p-2.5 bg-[#0D0D0D] border border-emerald-500/30 rounded-xl">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <img 
+                          src={screenshotPreview} 
+                          alt="Screenshot" 
+                          className="h-12 w-20 object-cover rounded-lg border border-white/10 shrink-0" 
+                        />
+                        <div className="text-xs truncate">
+                          <span className="text-emerald-300 font-semibold block truncate">Captura Cargada</span>
+                          <span className="text-[10px] text-slate-500 font-mono">Lista para análisis multimodal</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearScreenshot}
+                        className="text-slate-400 hover:text-rose-400 p-1.5 transition cursor-pointer"
+                        title="Eliminar imagen"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center p-4 bg-[#0D0D0D] border-2 border-dashed border-white/15 hover:border-[#D8F3DC]/50 rounded-xl cursor-pointer transition group">
+                      <Camera size={22} className="text-slate-400 group-hover:text-[#D8F3DC] transition mb-1" />
+                      <span className="text-xs font-semibold text-slate-300 group-hover:text-white">
+                        Sube una captura de la web (<span className="text-[#D8F3DC]">PNG, JPG, WebP</span>)
+                      </span>
+                      <span className="text-[10px] text-slate-500 mt-0.5">Gemini Vision evaluará contraste, CTAs y fugas visuales</span>
+                      <input 
+                        type="file" 
+                        accept="image/png,image/jpeg,image/jpg,image/webp" 
+                        className="hidden" 
+                        onChange={handleScreenshotUpload} 
+                      />
+                    </label>
+                  )}
+                </>
+              )}
             </div>
+
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
                 Industria / Nicho
@@ -531,18 +734,31 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
           
           <button 
             onClick={handleAudit}
-            disabled={loading || !url}
+            disabled={
+              loading || 
+              (inputMode === 'url' && !url.trim()) ||
+              (inputMode === 'html_file' && !htmlContent.trim()) ||
+              (inputMode === 'screenshot' && !screenshotBase64)
+            }
             className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-base cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 className="animate-spin text-[#0D0D0D]" size={20} /> 
-                <span>Ejecutando diagnóstico 360° con IA y escaneo legal...</span>
+                <span>
+                  {inputMode === 'url' && 'Ejecutando diagnóstico 360° con IA y escaneo legal...'}
+                  {inputMode === 'html_file' && 'Analizando estructura HTML local y RGPD con IA...'}
+                  {inputMode === 'screenshot' && 'Analizando diseño visual, CTAs y conversión con Gemini Vision...'}
+                </span>
               </>
             ) : (
               <>
                 <Sparkles size={20} className="text-[#0D0D0D]" />
-                <span>Generar Auditoría & Estrategia Comercial</span>
+                <span>
+                  {inputMode === 'url' && 'Generar Auditoría & Estrategia Comercial'}
+                  {inputMode === 'html_file' && 'Auditar Archivo HTML Local'}
+                  {inputMode === 'screenshot' && 'Auditar Captura con IA Vision'}
+                </span>
               </>
             )}
           </button>
