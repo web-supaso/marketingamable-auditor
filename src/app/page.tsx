@@ -407,6 +407,7 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.01</span>
             </div>
           </div>
         </footer>
@@ -1214,6 +1215,7 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.01</span>
           </div>
         </div>
       </footer>
