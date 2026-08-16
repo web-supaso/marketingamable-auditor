@@ -40,3 +40,20 @@
   color: #D8F3DC;
   font-weight: 800;
 }
+
+/* Print Styles for Executive PDF Dossier */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-page-break {
+    page-break-before: always;
+  }
+}

@@ -31,7 +31,9 @@ import {
   Camera,
   Upload,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Printer,
+  Download
 } from 'lucide-react';
 
 interface GapRow {
@@ -416,6 +418,143 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
   const mailBody = resultado?.cold_email?.cuerpo_aida || pitchText;
   const mailtoUrl = `mailto:?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
 
+  const generateFullMarkdownDossier = (res: AuditResult): string => {
+    const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    return `# 🌿 DOSSIER DE AUDITORÍA DIGITAL 360° & DIAGNÓSTICO COMERCIAL
+**Cliente / URL:** ${res.url}
+**Sector / Industria:** ${res.industria || 'General'}
+**Fecha de Diagnóstico:** ${fecha}
+**Auditoría Realizada por:** Marketing Amable (Intranet Oficial)
+
+---
+
+## 📊 1. RESUMEN EJECUTIVO & PUNTUACIÓN DE CONVERSIÓN
+- **Puntuación Global de Conversión:** ${res.puntuacion_global}/100
+- **Nota de Autoridad:** ${res.nota_autoridad || `${(res.puntuacion_global / 10).toFixed(1)} / 10`}
+- **Diagnóstico:** ${res.resumen_ejecutivo}
+
+${res.elephant_in_the_room ? `> 🐘 **THE ELEPHANT IN THE ROOM (Error Crítico Detectado):**\n> ${res.elephant_in_the_room}\n` : ''}
+
+---
+
+## ⚖️ 2. MÓDULO LEGAL RGPD & RIESGO SANCIONADOR (AEPD / UE)
+- **Nivel de Riesgo Legal:** ${res.rgpd_audit?.nivel_riesgo || 'Medio'}
+- **Puntuación de Cumplimiento:** ${res.rgpd_audit?.puntuacion_cumplimiento || 0}/100
+- **Estimación Sancionadora:** ${res.rgpd_audit?.sancion_estimada_euros || 'N/A'}
+- **Diagnóstico Legal:** ${res.rgpd_audit?.diagnostico_legal || 'N/A'}
+- **Gancho de Urgencia Comercial:** ${res.rgpd_audit?.gancho_urgencia_comercial || 'N/A'}
+
+### Checklist de Cumplimiento Técnico:
+- Aviso Legal: ${res.rgpd_audit?.elementos_detectados?.tiene_aviso_legal ? '✅ Implementado' : '❌ NO DETECTADO (Infracción LSSI)'}
+- Política de Privacidad: ${res.rgpd_audit?.elementos_detectados?.tiene_politica_privacidad ? '✅ Implementado' : '❌ NO DETECTADO (Infracción RGPD)'}
+- Política de Cookies: ${res.rgpd_audit?.elementos_detectados?.tiene_politica_cookies ? '✅ Implementado' : '❌ NO DETECTADO'}
+- Banner CMP de Consentimiento: ${res.rgpd_audit?.elementos_detectados?.tiene_banner_cmp ? '✅ Implementado' : '❌ NO DETECTADO'}
+- Telemetría sin Consentimiento: ${res.rgpd_audit?.elementos_detectados?.telemetria_sin_bloqueo ? '⚠️ INFRACCIÓN: Scripts de rastreo cargados antes de consentimiento' : '✅ Sin fugas de telemetría'}
+
+${res.rgpd_audit?.infracciones && res.rgpd_audit.infracciones.length > 0 ? `### Infracciones Específicas Detectadas:\n` + res.rgpd_audit.infracciones.map((inf, i) => `${i + 1}. **${inf.tipo}** (${inf.gravedad}) - *${inf.articulo_legal}*\n   - Explicación: ${inf.explicacion}\n   - Solución: ${inf.como_solucionarlo}`).join('\n\n') : ''}
+
+---
+
+## 💬 3. ARGUMENTARIOS DE PROSPECCIÓN & OUTREACH COMERCIAL
+
+### A. Pitch Rápido de WhatsApp / Mensaje Directo:
+\`\`\`text
+${res.pitch_whatsapp || ''}
+\`\`\`
+
+### B. Generador de Cold Emails B2B:
+- **Asunto 1 (Intriga):** ${res.cold_email?.asunto_1 || ''}
+- **Asunto 2 (Negocio):** ${res.cold_email?.asunto_2 || ''}
+- **Asunto 3 (Personalizado):** ${res.cold_email?.asunto_3 || ''}
+
+#### Plantilla AIDA (Atención, Interés, Deseo, Acción):
+${res.cold_email?.cuerpo_aida || ''}
+
+#### Plantilla PAS (Problema, Agitación, Solución):
+${res.cold_email?.cuerpo_pas || ''}
+
+- **Llamada a la Acción (Soft CTA):** ${res.cold_email?.llamada_a_la_accion || ''}
+
+---
+
+## 🔴 4. FUGAS DE DINERO & CONVERSIÓN
+${res.fugas_de_dinero?.map((f, i) => `${i + 1}. **${f.titulo}**\n   - **Impacto:** ${f.impacto_negocio}\n   - **Solución Propuesta:** ${f.solucion_simple}`).join('\n\n') || 'Ninguna fuga crítica detectada.'}
+
+---
+
+## 🎯 5. MATRIZ GAP DE TRANSFORMACIÓN DIGITAL 360°
+| Capa de Análisis | Hallazgo Crítico | Impacto Técnico | Impacto en Negocio ($) | Solución Propuesta |
+| :--- | :--- | :--- | :--- | :--- |
+${res.matriz_gap?.map(g => `| **${g.capa}** | ${g.hallazgo || g.hallazgo_critico || ''} | ${g.impacto_tecnico || ''} | ${g.impacto_negocio_dolares || g.impacto_negocio || ''} | ${g.solucion || g.solucion_propuesta || ''} |`).join('\n') || ''}
+
+---
+
+## 💰 6. PROYECCIÓN FINANCIERA DE ROI ESTIMADO
+- **Tráfico Estimado:** ${res.proyeccion_roi?.trafico_mensual || 'N/A'}
+- **Ticket Medio:** ${res.proyeccion_roi?.ticket_medio || 'N/A'}
+- **Conversión Actual:** ${res.proyeccion_roi?.conversion_actual || 'N/A'}
+- **Escenario Conservador:** ${res.proyeccion_roi?.escenario_pesimista || 'N/A'}
+- **Escenario Realista:** ${res.proyeccion_roi?.escenario_realista || 'N/A'}
+- **Escenario Óptimo:** ${res.proyeccion_roi?.escenario_optimista || 'N/A'}
+- **Conclusión Financiera:** ${res.proyeccion_roi?.conclusion || 'N/A'}
+
+---
+
+## 🤖 7. GEO & POSICIONAMIENTO EN MOTORES DE IA (SCHEMA.ORG)
+- **Entidades Clave:** ${res.geo_schema?.entidades?.join(', ') || 'N/A'}
+- **Frase de Citabilidad para LLMs:** "${res.geo_schema?.frase_citabilidad || 'N/A'}"
+- **Estructura JSON-LD:**
+\`\`\`json
+${JSON.stringify(res.geo_schema?.json_ld || {}, null, 2)}
+\`\`\`
+
+---
+
+## ✍️ 8. COPYS REESCRITOS DE ALTO IMPACTO
+${res.copys_reescritos?.map((c, i) => `### Enfoque ${i + 1}: ${c.enfoque}\n- **Titular:** "${c.headline}"\n- **Subtitular:** "${c.subheadline}"`).join('\n\n') || ''}
+
+---
+
+## 🛡️ 9. ARMAS CONTRA OBJECIONES DEL CLIENTE
+${res.armas_venta_objeciones?.map((a, i) => `${i + 1}. **Objeción:** "${a.objecion || a.objecion_cliente || ''}"\n   - **Contramedida Persuasiva:** ${a.contramedida || a.contramedida_persuasiva || ''}`).join('\n\n') || ''}
+
+---
+
+## 🗺️ 10. ROADMAP DE IMPLEMENTACIÓN EN 5 FASES
+${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
+
+---
+*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.04*
+`;
+  };
+
+  const handleCopyFullDossier = () => {
+    if (!resultado) return;
+    const markdown = generateFullMarkdownDossier(resultado);
+    navigator.clipboard.writeText(markdown);
+    setCopiedSection('full_dossier');
+    setTimeout(() => setCopiedSection(null), 3000);
+  };
+
+  const handleDownloadMarkdown = () => {
+    if (!resultado) return;
+    const markdown = generateFullMarkdownDossier(resultado);
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const urlBlob = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeName = (resultado.url || 'auditoria').replace(/[^a-zA-Z0-9-_]/g, '_');
+    link.href = urlBlob;
+    link.download = `auditoria_${safeName}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(urlBlob);
+  };
+
+  const handlePrintPdf = () => {
+    window.print();
+  };
+
   // 1. Estado de carga de sesión inicial
   if (checkingAuth) {
     return (
@@ -524,7 +663,7 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.03</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.04</span>
             </div>
           </div>
         </footer>
@@ -767,17 +906,25 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
                 value={industria}
                 onChange={(e) => setIndustria(e.target.value)}
               >
-                <option>Clínica Dental / Salud</option>
-                <option>Turismo / Eventos / Experiencias VIP</option>
-                <option>Moda / Estilo de Vida / Decoración</option>
-                <option>Reformas / Construcción / Hogar</option>
-                <option>Restaurante / Hostelería</option>
-                <option>Despacho Legal / Contable</option>
-                <option>Consultoría B2B / High-Ticket</option>
-                <option>Estética / Belleza / Spa</option>
-                <option>Inmobiliaria / Real Estate</option>
-                <option>Comercio / Tienda Online</option>
-                <option>General / Otra Industria</option>
+                <option>🏨 Turismo / Eventos / Experiencias VIP / Glamping</option>
+                <option>🩺 Clínica Dental / Medicina / Salud</option>
+                <option>💼 Consultoría B2B / Servicios High-Ticket</option>
+                <option>🛒 Comercio / Tienda Online / E-Commerce</option>
+                <option>🍽️ Restaurante / Hostelería / Gastronomía</option>
+                <option>⚖️ Despacho Legal / Asesoría / Contable</option>
+                <option>🏡 Inmobiliaria / Real Estate / Promotoras</option>
+                <option>🔨 Reformas / Construcción / Hogar / Arquitectura</option>
+                <option>👗 Moda / Estilo de Vida / Decoración</option>
+                <option>💆 Estética / Belleza / Spa / Cuidado Personal</option>
+                <option>🚀 SaaS / Software / Producto Digital</option>
+                <option>🎓 Formación / Infoproductos / Creadores / Coaching</option>
+                <option>🏋️ Fitness / Gimnasios / Entrenadores Personales</option>
+                <option>🚗 Automoción / Concesionarios / Talleres</option>
+                <option>🐾 Veterinaria / Mascotas / Cuidado Animal</option>
+                <option>🏭 Industria / Manufactura / Distribución B2B</option>
+                <option>💍 Joyería / Arte / Lujo & Exclusividad</option>
+                <option>🌱 ONG / Institucional / Eco-Tech & Sostenibilidad</option>
+                <option>🌐 General / Otra Industria</option>
               </select>
             </div>
           </div>
@@ -886,8 +1033,54 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
               </div>
             </div>
 
+            {/* Suite de Exportación Integral en 1 Clic */}
+            <div className="bg-[#121212] border border-[#D8F3DC]/30 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg shadow-[#D8F3DC]/5 no-print">
+              <div className="flex items-center gap-2.5 text-xs text-slate-300">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span className="font-bold text-white">Suite de Exportación del Dossier Completo</span>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                <button
+                  onClick={handlePrintPdf}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition border border-white/15 cursor-pointer"
+                  title="Imprimir o Guardar como PDF corporativo"
+                >
+                  <Printer size={15} className="text-[#D8F3DC]" />
+                  <span>Descargar PDF</span>
+                </button>
+
+                <button
+                  onClick={handleCopyFullDossier}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#1B4332] hover:bg-[#2d6a4f] text-[#D8F3DC] text-xs font-bold transition border border-[#D8F3DC]/30 cursor-pointer"
+                  title="Copiar todo el informe formateado para Notion, Google Docs o Word"
+                >
+                  {copiedSection === 'full_dossier' ? (
+                    <>
+                      <Check size={15} className="text-[#D8F3DC]" />
+                      <span>¡Dossier Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={15} className="text-[#D8F3DC]" />
+                      <span>Copiar Dossier Completo</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleDownloadMarkdown}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition border border-white/15 cursor-pointer"
+                  title="Descargar archivo Markdown .md"
+                >
+                  <Download size={15} className="text-[#D8F3DC]" />
+                  <span>Descargar .MD</span>
+                </button>
+              </div>
+            </div>
+
             {/* Selector de Pestañas Principales */}
-            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2 no-print">
               <button
                 onClick={() => setActiveTab('outreach')}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition cursor-pointer ${
@@ -1513,7 +1706,7 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.03</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.04</span>
           </div>
         </div>
       </footer>
