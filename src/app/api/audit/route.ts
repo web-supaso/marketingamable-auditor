@@ -71,6 +71,21 @@ export interface RgpdAudit {
   };
 }
 
+export interface ExperimentoAB {
+  nombre: string;
+  hipotesis: string;
+  variable_a_control: string;
+  variable_b_variante: string;
+  metrica_exito: string;
+}
+
+export interface LeadMagnetTecnico {
+  nombre: string;
+  descripcion: string;
+  como_funciona_vanilla_js: string;
+  impacto_captacion: string;
+}
+
 interface AuditResultPayload {
   puntuacion_global: number;
   nota_autoridad?: string;
@@ -92,10 +107,13 @@ interface AuditResultPayload {
   };
   geo_schema?: {
     entidades?: string[];
+    wikidata_ids?: string[];
     frase_citabilidad?: string;
     json_ld?: unknown;
     json_ld_code?: unknown;
   };
+  experimentos_ab?: ExperimentoAB[];
+  lead_magnet_tecnico?: LeadMagnetTecnico;
   copys_reescritos?: CopyReescrito[];
   armas_venta_objeciones?: ArmaVentaObjecion[];
   puntos_fuertes?: string[];
@@ -267,7 +285,13 @@ export async function POST(req: NextRequest) {
         missingAltCount = $('img:not([alt]), img[alt=""]').length;
         hasViewport = $('meta[name="viewport"]').length > 0;
 
-        bodyTextSnippet = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1200);
+        // Detección profunda de arquitectura técnica y trampas de indexación
+        const hasJsLangSwitch = rawLowerHtml.includes('changelang(') || rawLowerHtml.includes('setlang(') || rawLowerHtml.includes('switchlang(');
+        const hasHreflang = rawLowerHtml.includes('hreflang');
+        const hasRenderBlockingExternalFonts = rawLowerHtml.includes('fonts.googleapis.com') || rawLowerHtml.includes('font-awesome') || rawLowerHtml.includes('cdnjs.cloudflare.com');
+        const hasSchemaJsonLd = rawLowerHtml.includes('application/ld+json');
+
+        bodyTextSnippet = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1500);
 
       } catch (scrapingErr) {
         const err = scrapingErr as Error;
@@ -303,7 +327,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Prompt Maestro para Gemini
+    // 3. Prompt Maestro de Autoridad Digital 360° & Transformación (NEXUS v5.0)
     const speedInfo = pagespeedData.available
       ? `Rendimiento Mobile: ${pagespeedData.performance}/100, SEO Técnico: ${pagespeedData.seo}/100, Tiempo LCP: ${pagespeedData.lcp}`
       : `Datos PageSpeed: No aplicables o estimados por estructura.`;
@@ -325,8 +349,16 @@ export async function POST(req: NextRequest) {
     - ¿Carga Analytics/Pixel antes de obtener consentimiento?: ${telemetryWithoutConsent ? 'SÍ, INFRACCIÓN MUY GRAVE' : 'No detectado o bloqueado'}
     `;
 
+    const technicalAuditContext = `
+    🔍 TELEMETRÍA TÉCNICA PROFUNDA:
+    - ¿Traducción por JavaScript client-side (changeLang)?: ${html.toLowerCase().includes('changelang') ? 'SÍ (Trampa de i18n por JS: Invisible para Googlebot, GPTBot y ClaudeBot)' : 'No'}
+    - ¿Tiene etiquetas hreflang?: ${html.toLowerCase().includes('hreflang') ? 'Sí' : 'NO'}
+    - ¿Carga fuentes/iconos externos bloqueantes (Google Fonts/FontAwesome)?: ${html.toLowerCase().includes('fonts.googleapis.com') || html.toLowerCase().includes('font-awesome') ? 'SÍ (Impacta LCP y transferencia de IPs)' : 'No / Auto-alojado'}
+    - ¿Tiene marcado Schema JSON-LD preexistente?: ${html.toLowerCase().includes('application/ld+json') ? 'Sí' : 'NO (Invisibilidad en SGE/Perplexity)'}
+    `;
+
     const visualContext = tipo_analisis === 'screenshot' 
-      ? `📸 MODO CAPTURA DE PANTALLA (ANÁLISIS CRO MULTIMODAL): Analiza directamente la imagen adjunta. Evalúa la jerarquía visual del titular, contraste de botones CTAs, legibilidad de textos, espacio en blanco, saturación visual, presencia de prueba social y fricción visual para el usuario.`
+      ? `📸 MODO CAPTURA DE PANTALLA (ANÁLISIS CRO MULTIMODAL): Analiza directamente la imagen adjunta. Evalúa la jerarquía visual del titular, contraste de botones CTAs, legibilidad de textos, espacio en blanco, saturación visual (Ley de Miller), presencia de prueba social y fricción visual para el usuario.`
       : ``;
 
     const webAnalysisData = `
@@ -348,40 +380,39 @@ export async function POST(req: NextRequest) {
     - Redes sociales: ${socialLinks.length > 0 ? socialLinks.join(', ') : 'Ninguna'}
     - Herramientas de telemetría/pixel: ${hasAnalytics ? 'Sí' : 'No'}
     - Imágenes sin etiqueta alt descriptiva: ${missingAltCount}
-    - Extracto de contenido del sitio: "${bodyTextSnippet.slice(0, 600)}"
+    - Extracto de contenido del sitio: "${bodyTextSnippet.slice(0, 1000)}"
     - ${speedInfo}
     - ${spaContext}
     - ${iframeContext}
+    ${technicalAuditContext}
     ${visualContext}
     ${rgpdAuditContext}
     `;
 
-    const prompt = `Eres un consultor de élite en CRO (Conversión), Transformación Digital, Compliance Legal Web (RGPD / AEPD) y Estrategia Comercial de Alto Valor (Nivel McKinsey / Agencia Élite).
-Tu misión es analizar la presencia digital de esta empresa con los datos técnicos, visuales y legales proporcionados y generar un ENTREGABLE INTEGRAL:
+    const prompt = `Eres un consultor de máxima autoridad en CRO (Conversión), Transformación Digital 360°, Compliance Legal Web (RGPD / AEPD / CNIL) y Estrategia Comercial de Alto Valor (Nivel McKinsey / NEXUS 5.0).
+Tu misión es analizar la presencia digital de esta empresa con los datos técnicos, visuales y legales proporcionados y generar un ENTREGABLE DE CONSULTORÍA DE MÁXIMO NIVEL:
 1. PITCH DE VENTA RÁPIDO (WhatsApp / Outreach): Directo, educado, sin tecnicismos abrumadores, enfocado en abrir la conversación ofreciendo resolver el problema crítico en menos de 24h.
-2. GENERADOR DE COLD EMAIL B2B (Email en frío de élite): 3 asuntos con más del 60% de tasa de apertura estimada (curiosidad, sin palabras de spam), plantilla con estructura AIDA (Atención, Interés, Deseo, Acción) y plantilla con estructura PAS (Problema, Agitación, Solución) con llamada a la acción suave (Soft CTA).
-3. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS v5.0): Una auditoría holística de máxima sofisticación con Matriz GAP, Proyección Financiera de ROI en $, Schema JSON-LD para IAs (GEO), Copys reescritos, Armas contra Objeciones y Roadmap.
-4. MÓDULO LEGAL RGPD & SANCIONES AEPD: Diagnóstico riguroso de riesgos de sanción (1.500€ a 30.000€+), identificación de artículos vulnerados y gancho de urgencia comercial para cerrar servicios de compliance y rediseño legal.
+2. GENERADOR DE COLD EMAIL B2B: 3 asuntos con alta tasa de apertura (curiosidad, sin palabras de spam), plantilla con estructura AIDA y plantilla con estructura PAS con llamada a la acción suave (Soft CTA).
+3. INFORME DE AUTORIDAD DIGITAL & TRANSFORMACIÓN 360° (NEXUS 5.0): Matriz GAP de 5 capas de élite (Privacidad, CRO Fogg B=MAP, GEO/LLMs, Neuro-UI Ley de Miller, Eco-Performance WPO), Proyección Financiera de ROI en $, Schema JSON-LD con Entidades y Wikidata IDs, 2 Experimentos A/B Validables, y 1 Propuesta de Lead Magnet Técnico Interactivo ("Widget de Amabilidad Digital") en Vanilla JS < 4KB.
+4. MÓDULO LEGAL RGPD & SANCIONES AEPD: Diagnóstico riguroso de riesgos de sanción (1.500€ a 30.000€+), artículos vulnerados y gancho de urgencia comercial.
 
 DATOS DEL ANÁLISIS:
 ${webAnalysisData}
 
-INSTRUCCIONES CLAVE:
+INSTRUCCIONES CLAVE DE CALIDAD:
 - Sé implacable y honesto con la nota (0-100 y nota sobre 10).
-- Si el título es genérico o la web tiene fallos visuales/técnicos, destácalo como "The Elephant in the Room" (el gran fallo que destruye la credibilidad).
-- En Cold Email B2B, redacta asuntos ultra-personalizados y cuerpos hiper-persuasivos pero profesionales.
-- En RGPD, evalúa con rigor según la normativa europea (LSSI y RGPD): si falta Aviso Legal, Privacidad, Cookies o si dispara telemetría sin CMP, marca riesgo Alto o Crítico y estima la sanción real.
-- En la Proyección de ROI, calcula cifras monetarias en USD realistas para la industria.
-- En GEO (SEO para IAs), genera las entidades y el código JSON-LD Schema.org completo y válido.
-- En Copys Reescritos, redacta 3 enfoques psicológicos de alto impacto: 1) B2B Directo/Autoridad, 2) Exclusividad VIP High-Ticket, 3) Reducción de Tiempo/Fricción.
-- En Armas de Venta, incluye las 2 objeciones más frecuentes del dueño con sus contramedidas letales.
+- "The Elephant in the Room": Identifica con precisión quirúrgica el fallo estratégico o técnico oculto más grave que frena el negocio (ej: trampa de traducción por JS que ciega a Googlebot/IAs, bloqueo de renderizado por fuentes/iconos externos, ausencia de CTAs segmentados para B2B vs familias, o riesgo sancionador crítico).
+- En la Matriz GAP cubre las 5 capas de élite con hallazgo, impacto técnico, impacto en negocio ($) y solución.
+- En GEO (SEO para IAs), genera entidades semánticas con sus IDs de Wikidata si corresponden, frase exacta de citabilidad para rastreadores LLM y código JSON-LD completo.
+- En Experimentos A/B, formula 2 hipótesis de testing validables con Variables A y B y métrica de éxito estimada.
+- En Lead Magnet Técnico, propone una herramienta interactiva ("Widget de Amabilidad Digital") ligera en Vanilla JS para captar leads MoFu sin cookies.
 
 Devuelve estrictamente un JSON válido con esta estructura:
 {
   "puntuacion_global": 0-100,
   "nota_autoridad": "X.X / 10",
   "resumen_ejecutivo": "1 o 2 frases contundentes sobre el estado de la web.",
-  "elephant_in_the_room": "Explicación del error crítico de negocio y diseño que destruye la credibilidad del cliente.",
+  "elephant_in_the_room": "Explicación del error crítico de negocio y diseño que destruye la credibilidad o visibilidad del cliente.",
   "pitch_whatsapp": "Texto completo y persuasivo listo para copiar y pegar en WhatsApp/Email.",
   "cold_email": {
     "asunto_1": "Asunto de alta apertura 1 (Intriga / Curiosidad)",
@@ -394,13 +425,13 @@ Devuelve estrictamente un JSON válido con esta estructura:
   "rgpd_audit": {
     "nivel_riesgo": "Crítico" | "Alto" | "Medio" | "Bajo",
     "puntuacion_cumplimiento": 0-100,
-    "sancion_estimada_euros": "ej: 3.000€ a 12.000€ (según baremo AEPD)",
+    "sancion_estimada_euros": "ej: 3.000€ a 15.000€ (según baremos AEPD/CNIL)",
     "diagnostico_legal": "Resumen claro del estado de cumplimiento normativo y exposición a multas.",
     "infracciones": [
       {
         "tipo": "Nombre de la infracción",
         "gravedad": "Muy Grave" | "Grave" | "Leve",
-        "articulo_legal": "Art. 22.2 LSSI / Art. 13 RGPD...",
+        "articulo_legal": "Art. 10 LSSI / Art. 13 RGPD / Art. 22.2 LSSI...",
         "explicacion": "Por qué incumple la ley actualmente.",
         "como_solucionarlo": "Cómo lo resuelves tú de inmediato."
       }
@@ -423,7 +454,7 @@ Devuelve estrictamente un JSON válido con esta estructura:
   ],
   "matriz_gap": [
     {
-      "capa": "Privacidad & Telemetría",
+      "capa": "Privacidad & Ética",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
@@ -437,21 +468,21 @@ Devuelve estrictamente un JSON válido con esta estructura:
       "solucion": "..."
     },
     {
-      "capa": "GEO / Entidades LLM",
+      "capa": "GEO (SEO para IAs)",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
       "solucion": "..."
     },
     {
-      "capa": "Velocidad & Core Web Vitals",
+      "capa": "Neuro-UI / Carga Cognitiva",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
       "solucion": "..."
     },
     {
-      "capa": "Copywriting de Autoridad",
+      "capa": "Eco-Performance (WPO)",
       "hallazgo": "...",
       "impacto_tecnico": "...",
       "impacto_negocio": "...",
@@ -459,24 +490,47 @@ Devuelve estrictamente un JSON válido con esta estructura:
     }
   ],
   "proyeccion_roi": {
-    "trafico_mensual": "ej: 3,000 visitas/mes",
-    "ticket_medio": "ej: $1,200",
-    "conversion_actual": "ej: 1.0% (30 clientes = $36,000/mes)",
-    "escenario_pesimista": "+$1,800/mes (+5% conversión)",
-    "escenario_realista": "+$5,400/mes (+15% conversión)",
-    "escenario_optimista": "+$10,800/mes (+30% conversión)",
+    "trafico_mensual": "ej: 1,500 visitas/mes",
+    "ticket_medio": "ej: $450 por reserva",
+    "conversion_actual": "ej: 0.8% (12 reservas = $5,400/mes)",
+    "escenario_pesimista": "+$1,350/mes (+5% relativo)",
+    "escenario_realista": "+$4,050/mes (+15% relativo)",
+    "escenario_optimista": "+$8,100/mes (+30% relativo)",
     "conclusion": "Explicación de cómo la inversión se amortiza rápidamente."
   },
   "geo_schema": {
     "entidades": ["Entidad 1", "Entidad 2", "Entidad 3"],
-    "frase_citabilidad": "Frase de posicionamiento para que ChatGPT/Perplexity citen a esta empresa como referente.",
+    "wikidata_ids": ["Q6611", "Q1234"],
+    "frase_citabilidad": "Frase exacta de citabilidad para que ChatGPT/Perplexity citen a esta empresa como referente.",
     "json_ld": {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
+      "@type": "TouristAttraction",
       "name": "Nombre Negocio",
       "description": "...",
       "url": "${cleanUrl}"
     }
+  },
+  "experimentos_ab": [
+    {
+      "nombre": "Personalización Dinámica de CTAs (Fogg B=MAP)",
+      "hipotesis": "Sustituir el botón genérico por 2 CTAs segmentados (Familiar vs Corporativo B2B)...",
+      "variable_a_control": "Botón único genérico...",
+      "variable_b_variante": "Dos botones con micro-copy persuasivo...",
+      "metrica_exito": "+18% CTR hacia el formulario y +12% leads corporativos."
+    },
+    {
+      "nombre": "Optimización WPO & Rutas Estáticas i18n",
+      "hipotesis": "Eliminar la traducción por JS en favor de rutas estáticas y fuentes locales...",
+      "variable_a_control": "Traducción por JS con fuentes externas...",
+      "variable_b_variante": "Rutas estáticas cacheadas y fuentes WOFF2 locales...",
+      "metrica_exito": "Reducción de TTI de 3.2s a 0.9s y +45% tráfico orgánico internacional."
+    }
+  ],
+  "lead_magnet_tecnico": {
+    "nombre": "Nombre de la Calculadora o Widget Interactivo",
+    "descripcion": "Descripción del concepto del widget...",
+    "como_funciona_vanilla_js": "Explicación técnica del script ligero (< 4KB) sin cookies...",
+    "impacto_captacion": "Cómo captura emails de leads B2B y cualificados."
   },
   "copys_reescritos": [
     {
@@ -497,19 +551,19 @@ Devuelve estrictamente un JSON válido con esta estructura:
   ],
   "armas_venta_objeciones": [
     {
-      "objecion": "Ya captamos clientes por recomendación offline / boca a boca.",
-      "contramedida": "El boca a boca inicia la búsqueda, pero el 90% audita la web antes de agendar. Una presencia descuidada es un filtro silencioso que aleja a los clientes más rentables."
+      "objecion": "La web actual ya se ve hermosa y los colores representan el negocio. ¿Por qué cambiarla?",
+      "contramedida": "La estética atrae al ojo, pero la arquitectura técnica repele a los motores de búsqueda y a las IAs que deciden las compras de alto ticket..."
     },
     {
-      "objecion": "La web se ve bien en mi móvil.",
-      "contramedida": "Visualmente puede intuirse, pero técnicamente el contraste y los tiempos de carga penalizan la indexación en Google y expulsan al tráfico frío en los primeros 3 segundos."
+      "objecion": "No necesitamos textos legales ni cookies porque no procesamos pagos en línea.",
+      "contramedida": "El RGPD sanciona la mera recogida de datos en formularios. Una sola denuncia puede derivar en multas de 3.000€ a 15.000€..."
     }
   ],
   "puntos_fuertes": ["Punto 1", "Punto 2"],
   "recomendacion_prioritaria": "La acción prioritaria número 1 a ejecutar en las próximas 24 horas.",
   "roadmap": [
-    { "fase": "FASE 1 (24-48h)", "accion": "Quick Win inmediato de conversión..." },
-    { "fase": "FASE 2 (72h)", "accion": "Corrección de contraste, jerarquía y CTAs..." },
+    { "fase": "FASE 1 (24-48h)", "accion": "Quick Win inmediato de conversión y blindaje legal..." },
+    { "fase": "FASE 2 (72h)", "accion": "Habilitar canales de contacto directo (WhatsApp/teléfono)..." },
     { "fase": "FASE 3 (1 Semana)", "accion": "Inyección de Schema JSON-LD y optimización GEO..." },
     { "fase": "FASE 4 (2 Semanas)", "accion": "Despliegue de tests A/B de Copywriting..." },
     { "fase": "FASE 5 (1 Mes)", "accion": "Integración de Lead Magnet interactivo de captación..." }

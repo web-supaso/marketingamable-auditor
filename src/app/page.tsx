@@ -104,6 +104,21 @@ export interface RgpdAudit {
   };
 }
 
+export interface ExperimentoAB {
+  nombre: string;
+  hipotesis: string;
+  variable_a_control: string;
+  variable_b_variante: string;
+  metrica_exito: string;
+}
+
+export interface LeadMagnetTecnico {
+  nombre: string;
+  descripcion: string;
+  como_funciona_vanilla_js: string;
+  impacto_captacion: string;
+}
+
 interface AuditResult {
   id?: string;
   created_at?: string;
@@ -129,10 +144,13 @@ interface AuditResult {
   };
   geo_schema?: {
     entidades?: string[];
+    wikidata_ids?: string[];
     frase_citabilidad?: string;
     json_ld?: unknown;
     json_ld_code?: unknown;
   };
+  experimentos_ab?: ExperimentoAB[];
+  lead_magnet_tecnico?: LeadMagnetTecnico;
   copys_reescritos?: CopyReescrito[];
   armas_venta_objeciones?: ArmaVentaObjecion[];
   puntos_fuertes?: string[];
@@ -502,7 +520,7 @@ ${res.matriz_gap?.map(g => `| **${g.capa}** | ${g.hallazgo || g.hallazgo_critico
 
 ## 🤖 7. GEO & POSICIONAMIENTO EN MOTORES DE IA (SCHEMA.ORG)
 - **Entidades Clave:** ${res.geo_schema?.entidades?.join(', ') || 'N/A'}
-- **Frase de Citabilidad para LLMs:** "${res.geo_schema?.frase_citabilidad || 'N/A'}"
+${res.geo_schema?.wikidata_ids && res.geo_schema.wikidata_ids.length > 0 ? `- **Wikidata IDs:** ${res.geo_schema.wikidata_ids.join(', ')}\n` : ''}- **Frase de Citabilidad para LLMs:** "${res.geo_schema?.frase_citabilidad || 'N/A'}"
 - **Estructura JSON-LD:**
 \`\`\`json
 ${JSON.stringify(res.geo_schema?.json_ld || {}, null, 2)}
@@ -510,21 +528,37 @@ ${JSON.stringify(res.geo_schema?.json_ld || {}, null, 2)}
 
 ---
 
-## ✍️ 8. COPYS REESCRITOS DE ALTO IMPACTO
+${res.experimentos_ab && res.experimentos_ab.length > 0 ? `## 🧪 8. HIPÓTESIS DE TESTING A/B VALIDABLES
+${res.experimentos_ab.map((exp: ExperimentoAB, i: number) => `### Experimento A/B ${i + 1}: ${exp.nombre}
+- **Hipótesis:** ${exp.hipotesis}
+- **Variable A (Control):** ${exp.variable_a_control}
+- **Variable B (Variante):** ${exp.variable_b_variante}
+- **Métrica de Éxito Estimada:** ${exp.metrica_exito}`).join('\n\n')}
+
+---
+` : ''}${res.lead_magnet_tecnico ? `## 🔌 9. PROPUESTA DE LEAD MAGNET TÉCNICO INTERACTIVO ("Widget de Amabilidad Digital")
+### "${res.lead_magnet_tecnico.nombre}"
+${res.lead_magnet_tecnico.descripcion}
+
+- **Funcionamiento Técnico:** ${res.lead_magnet_tecnico.como_funciona_vanilla_js}
+- **Impacto en Captación:** ${res.lead_magnet_tecnico.impacto_captacion}
+
+---
+` : ''}## ✍️ 10. COPYS REESCRITOS DE ALTO IMPACTO
 ${res.copys_reescritos?.map((c, i) => `### Enfoque ${i + 1}: ${c.enfoque}\n- **Titular:** "${c.headline}"\n- **Subtitular:** "${c.subheadline}"`).join('\n\n') || ''}
 
 ---
 
-## 🛡️ 9. ARMAS CONTRA OBJECIONES DEL CLIENTE
+## 🛡️ 11. ARMAS CONTRA OBJECIONES DEL CLIENTE
 ${res.armas_venta_objeciones?.map((a, i) => `${i + 1}. **Objeción:** "${a.objecion || a.objecion_cliente || ''}"\n   - **Contramedida Persuasiva:** ${a.contramedida || a.contramedida_persuasiva || ''}`).join('\n\n') || ''}
 
 ---
 
-## 🗺️ 10. ROADMAP DE IMPLEMENTACIÓN EN 5 FASES
+## 🗺️ 12. ROADMAP DE IMPLEMENTACIÓN EN 5 FASES
 ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
 
 ---
-*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.04*
+*© ${new Date().getFullYear()} Marketing Amable • Diseñado con pasión por Marketing Amable v.07*
 `;
   };
 
@@ -542,9 +576,14 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
     const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
     const urlBlob = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const safeName = (resultado.url || 'auditoria').replace(/[^a-zA-Z0-9-_]/g, '_');
+    const safeName = (resultado.url || 'auditoria')
+      .replace(/^https?:\/\//, '')
+      .replace(/[^a-zA-Z0-9-_]/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 45);
+    const dateStr = new Date().toISOString().slice(0, 10);
     link.href = urlBlob;
-    link.download = `auditoria_${safeName}.md`;
+    link.download = `Auditoria_360_${safeName}_${dateStr}.md`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -552,7 +591,19 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
   };
 
   const handlePrintPdf = () => {
+    if (!resultado) return;
+    const prevTitle = document.title;
+    const safeClient = (resultado.url || 'cliente')
+      .replace(/^https?:\/\//, '')
+      .replace(/[^a-zA-Z0-9-_]/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 45);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    document.title = `Auditoria_360_${safeClient}_${dateStr}_MarketingAmable`;
     window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 2000);
   };
 
   // 1. Estado de carga de sesión inicial
@@ -663,7 +714,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.06</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.07</span>
             </div>
           </div>
         </footer>
@@ -1883,12 +1934,65 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               </div>
             )}
 
-            {/* 7. Copys Reescritos & Objeciones */}
+            {/* 7. Hipótesis de Testing A/B Validables */}
+            {resultado.experimentos_ab && resultado.experimentos_ab.length > 0 && (
+              <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
+                  🧪 7. Hipótesis de Testing A/B Validables
+                </h2>
+                <div className="space-y-3">
+                  {resultado.experimentos_ab.map((exp: ExperimentoAB, i: number) => (
+                    <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                      <div className="font-bold text-slate-900 mb-1">Experimento {i + 1}: {exp.nombre}</div>
+                      <div className="text-slate-700 text-[11px] mb-2 italic">&ldquo;{exp.hipotesis}&rdquo;</div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px] mb-1">
+                        <div className="p-2 bg-white rounded border border-slate-200">
+                          <span className="font-bold text-slate-500 block">Variable A (Control):</span>
+                          <span className="text-slate-700">{exp.variable_a_control}</span>
+                        </div>
+                        <div className="p-2 bg-emerald-50 rounded border border-emerald-200">
+                          <span className="font-bold text-emerald-800 block">Variable B (Variante):</span>
+                          <span className="text-emerald-900">{exp.variable_b_variante}</span>
+                        </div>
+                      </div>
+                      <div className="text-[11px] text-emerald-800 font-semibold mt-1">
+                        Métrica de Éxito Estimada: {exp.metrica_exito}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 8. Propuesta de Lead Magnet Técnico Interactivo */}
+            {resultado.lead_magnet_tecnico && (
+              <div className="print-avoid-break bg-emerald-50/50 border border-emerald-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                  🔌 8. Propuesta de Lead Magnet Técnico (&ldquo;Widget de Amabilidad Digital&rdquo;)
+                </h2>
+                <div className="text-xs text-slate-900 font-bold mb-1">
+                  &ldquo;{resultado.lead_magnet_tecnico.nombre}&rdquo;
+                </div>
+                <p className="text-xs text-slate-700 mb-2">{resultado.lead_magnet_tecnico.descripcion}</p>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 bg-white rounded border border-emerald-200">
+                    <span className="font-bold text-emerald-900 block">Funcionamiento Técnico:</span>
+                    <span className="text-slate-700">{resultado.lead_magnet_tecnico.como_funciona_vanilla_js}</span>
+                  </div>
+                  <div className="p-2 bg-white rounded border border-emerald-200">
+                    <span className="font-bold text-emerald-900 block">Impacto en Captación MoFu:</span>
+                    <span className="text-slate-700">{resultado.lead_magnet_tecnico.impacto_captacion}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 9. Copys Reescritos & Objeciones */}
             <div className="print-avoid-break grid grid-cols-2 gap-4">
               {resultado.copys_reescritos && (
                 <div className="border border-slate-200 rounded-xl p-4">
                   <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                    ✍️ 7. Copys de Alta Conversión
+                    ✍️ 9. Copys de Alta Conversión
                   </h2>
                   <div className="space-y-2 text-xs">
                     {resultado.copys_reescritos.map((c, i) => (
@@ -1905,7 +2009,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               {resultado.armas_venta_objeciones && (
                 <div className="border border-slate-200 rounded-xl p-4">
                   <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                    🛡️ 8. Armas de Venta vs Objeciones
+                    🛡️ 10. Armas de Venta vs Objeciones
                   </h2>
                   <div className="space-y-2 text-xs">
                     {resultado.armas_venta_objeciones.map((a, i) => (
@@ -1919,11 +2023,11 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               )}
             </div>
 
-            {/* 8. Roadmap en 5 Fases */}
+            {/* 11. Roadmap en 5 Fases */}
             {resultado.roadmap && (
               <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
                 <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
-                  🗺️ 9. Roadmap de Implementación en 5 Fases
+                  🗺️ 11. Roadmap de Implementación en 5 Fases
                 </h2>
                 <div className="grid grid-cols-5 gap-2 text-center text-xs">
                   {resultado.roadmap.map((r, i) => (
@@ -1939,7 +2043,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
             {/* Pie de Página Oficial en PDF */}
             <div className="border-t-2 border-[#1B4332] pt-3 flex items-center justify-between text-[10px] text-slate-500">
               <div>© {new Date().getFullYear()} Marketing Amable • Todos los derechos reservados.</div>
-              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.06</span></div>
+              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.07</span></div>
             </div>
 
           </div>
@@ -1966,7 +2070,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.06</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.07</span>
           </div>
         </div>
       </footer>
