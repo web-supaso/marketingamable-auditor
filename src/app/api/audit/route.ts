@@ -531,12 +531,12 @@ Devuelve estrictamente un JSON válido con esta estructura:
       ];
     }
 
-    // 4. Llamada a Gemini con cascada de modelos anti-503 (High Demand Fallback)
+    // 4. Llamada a Gemini con cascada de modelos verificados anti-503 y anti-404
     const candidateModels = [
-      'gemini-2.0-flash',
-      'gemini-1.5-flash',
-      'gemini-2.5-flash',
-      'gemini-1.5-pro',
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-flash-lite-latest',
+      'gemini-flash-latest',
     ];
 
     let response;
