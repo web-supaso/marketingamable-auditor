@@ -663,7 +663,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.04</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.05</span>
             </div>
           </div>
         </footer>
@@ -676,7 +676,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
     <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D]">
       
       {/* Barra Superior de Sesión */}
-      <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2.5 flex items-center justify-between text-xs">
+      <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2.5 flex items-center justify-between text-xs no-print">
         <div className="flex items-center gap-2 text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Sesión Activa en Intranet</span>
@@ -693,7 +693,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8">
         
         {/* Header Hero Branding Oficial */}
-        <header className="mb-10 text-center flex flex-col items-center">
+        <header className="mb-10 text-center flex flex-col items-center no-print">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
             <Image src="/002.gif" alt="Marketing Amable" width={20} height={20} className="h-5 w-auto" unoptimized />
             <span>Auditor Comercial & Autoridad 360°</span>
@@ -714,7 +714,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
         </header>
 
         {/* Formulario de Entrada */}
-        <div className="bg-[#121212] p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 mb-8">
+        <div className="bg-[#121212] p-6 md:p-8 rounded-2xl shadow-2xl border border-white/10 mb-8 no-print">
           
           {/* Selector de Modo de Análisis (3 Opciones) */}
           <div className="mb-6">
@@ -994,7 +994,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
         </div>
 
         {error && (
-          <div className="bg-rose-950/60 text-rose-300 p-5 rounded-xl mb-8 border border-rose-800 flex items-start gap-3">
+          <div className="bg-rose-950/60 text-rose-300 p-5 rounded-xl mb-8 border border-rose-800 flex items-start gap-3 no-print">
             <AlertTriangle className="text-rose-400 shrink-0 mt-0.5" size={20} />
             <div>
               <div className="font-bold">Error en la auditoría</div>
@@ -1005,7 +1005,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
 
         {/* Dashboard de Resultados */}
         {resultado && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 no-print">
             
             {/* Header del Reporte */}
             <div className="bg-[#121212] border border-white/10 p-6 md:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -1685,10 +1685,270 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
           </div>
         )}
 
+        {/* ========================================================================= */}
+        {/* 🖨️ DOSSIER EJECUTIVO IMPRIMIBLE COMPLETO (SOLO SE MUESTRA EN IMPRESIÓN/PDF) */}
+        {/* ========================================================================= */}
+        {resultado && (
+          <div id="dossier-imprimible" className="hidden print:block print:w-full bg-white text-slate-900 font-sans p-2 space-y-6 print:text-xs">
+            
+            {/* Portada & Cabecera de Marca */}
+            <div className="border-b-2 border-[#1B4332] pb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Image src="/002.gif" alt="Marketing Amable" width={36} height={36} className="h-9 w-auto" unoptimized />
+                <div>
+                  <div className="text-xl font-black tracking-tight text-[#1B4332]">
+                    <span>MARKETING</span> <span className="text-emerald-700">AMABLE</span>
+                  </div>
+                  <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                    Intranet de Consultoría Digital & Auditoría Comercial 360°
+                  </div>
+                </div>
+              </div>
+              <div className="text-right text-[11px] text-slate-600">
+                <div><strong>Fecha:</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                <div><strong>Versión:</strong> v.05</div>
+              </div>
+            </div>
+
+            {/* Tarjeta Principal de Identificación & Score */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Cliente Prospecto Auditado</span>
+                <h1 className="text-lg font-black text-slate-900 mt-0.5">{resultado.url}</h1>
+                <div className="text-xs text-slate-600 mt-0.5">
+                  <strong>Sector:</strong> {resultado.industria || industria}
+                  {resultado.detectedInfo?.title && (
+                    <span className="ml-2 italic text-slate-500">• &ldquo;{resultado.detectedInfo.title}&rdquo;</span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right bg-white px-4 py-2 rounded-lg border border-slate-300 shadow-sm">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Score Conversión</div>
+                <div className="text-2xl font-black text-slate-900">
+                  {resultado.puntuacion_global}<span className="text-xs text-slate-500 font-normal">/100</span>
+                </div>
+                <div className="text-[10px] text-emerald-700 font-semibold">
+                  Nota: {resultado.nota_autoridad || `${(resultado.puntuacion_global / 10).toFixed(1)} / 10`}
+                </div>
+              </div>
+            </div>
+
+            {/* 1. Resumen Ejecutivo & The Elephant in the Room */}
+            <div className="print-avoid-break bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                📊 1. Resumen Ejecutivo & Diagnóstico Estratégico
+              </h2>
+              <p className="text-xs text-slate-700 leading-relaxed">{resultado.resumen_ejecutivo}</p>
+              
+              {resultado.elephant_in_the_room && (
+                <div className="mt-3 p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+                  <div className="text-[11px] font-bold text-amber-900 uppercase">🐘 The Elephant in the Room (Fallo Crítico):</div>
+                  <div className="text-xs text-amber-800 mt-0.5">{resultado.elephant_in_the_room}</div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Módulo Legal RGPD & Riesgo Sancionador */}
+            <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+              <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
+                ⚖️ 2. Módulo Legal RGPD & Riesgo Sancionador (AEPD / UE)
+              </h2>
+              <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <span className="text-[10px] text-slate-500 font-bold block">NIVEL DE RIESGO</span>
+                  <span className="font-bold text-rose-700">{resultado.rgpd_audit?.nivel_riesgo || 'Medio'}</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <span className="text-[10px] text-slate-500 font-bold block">CUMPLIMIENTO</span>
+                  <span className="font-bold text-slate-900">{resultado.rgpd_audit?.puntuacion_cumplimiento || 0}/100</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <span className="text-[10px] text-slate-500 font-bold block">SANCIÓN ESTIMADA</span>
+                  <span className="font-bold text-rose-700">{resultado.rgpd_audit?.sancion_estimada_euros || 'N/A'}</span>
+                </div>
+              </div>
+
+              <div className="text-xs text-slate-700 mb-3">
+                <strong>Diagnóstico Legal:</strong> {resultado.rgpd_audit?.diagnostico_legal}
+              </div>
+
+              {resultado.rgpd_audit?.infracciones && resultado.rgpd_audit.infracciones.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] font-bold text-slate-800 uppercase">Infracciones Detectadas:</div>
+                  {resultado.rgpd_audit.infracciones.map((inf, i) => (
+                    <div key={i} className="p-2 bg-rose-50 border border-rose-200 rounded-lg text-xs">
+                      <div className="font-bold text-rose-900">{i + 1}. {inf.tipo} ({inf.gravedad}) — <span className="italic font-normal">{inf.articulo_legal}</span></div>
+                      <div className="text-rose-800 text-[11px] mt-0.5">{inf.explicacion}</div>
+                      <div className="text-slate-700 text-[11px] mt-1"><strong>Solución:</strong> {inf.como_solucionarlo}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 3. Prospección Comercial & Cold Emails */}
+            <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+              <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
+                💬 3. Argumentarios de Prospección Rápida
+              </h2>
+              <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="text-[11px] font-bold text-emerald-900 uppercase mb-1">Pitch Directo de WhatsApp:</div>
+                <div className="text-xs text-slate-800 whitespace-pre-line font-mono">{resultado.pitch_whatsapp}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="font-bold text-slate-800 mb-1">Plantilla Cold Email AIDA:</div>
+                  <div className="text-slate-700 whitespace-pre-line text-[11px]">{resultado.cold_email?.cuerpo_aida}</div>
+                </div>
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                  <div className="font-bold text-slate-800 mb-1">Plantilla Cold Email PAS:</div>
+                  <div className="text-slate-700 whitespace-pre-line text-[11px]">{resultado.cold_email?.cuerpo_pas}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Detección de Fugas de Dinero */}
+            {resultado.fugas_de_dinero && resultado.fugas_de_dinero.length > 0 && (
+              <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-rose-800 uppercase tracking-wider mb-3">
+                  🔴 4. Fugas de Dinero & Conversión Detectadas
+                </h2>
+                <div className="space-y-2">
+                  {resultado.fugas_de_dinero.map((f, i) => (
+                    <div key={i} className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs flex justify-between gap-4">
+                      <div>
+                        <div className="font-bold text-slate-900">{i + 1}. {f.titulo}</div>
+                        <div className="text-slate-600 text-[11px] mt-0.5">{f.impacto_negocio}</div>
+                      </div>
+                      <div className="text-right text-[11px] text-emerald-800 font-semibold shrink-0 max-w-xs">
+                        Solución: {f.solucion_simple}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 5. Matriz GAP 360° */}
+            {resultado.matriz_gap && resultado.matriz_gap.length > 0 && (
+              <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
+                  🎯 5. Matriz GAP de Transformación Digital 360°
+                </h2>
+                <table className="w-full text-left border-collapse text-[11px]">
+                  <thead>
+                    <tr className="bg-slate-100 border-b border-slate-300">
+                      <th className="p-2 font-bold text-slate-700">Capa</th>
+                      <th className="p-2 font-bold text-slate-700">Hallazgo</th>
+                      <th className="p-2 font-bold text-slate-700">Impacto Negocio ($)</th>
+                      <th className="p-2 font-bold text-slate-700">Solución Propuesta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {resultado.matriz_gap.map((g, i) => (
+                      <tr key={i} className="border-b border-slate-200">
+                        <td className="p-2 font-bold text-slate-800">{g.capa}</td>
+                        <td className="p-2 text-slate-600">{g.hallazgo || g.hallazgo_critico}</td>
+                        <td className="p-2 font-semibold text-rose-700">{g.impacto_negocio_dolares || g.impacto_negocio}</td>
+                        <td className="p-2 text-slate-700">{g.solucion || g.solucion_propuesta}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* 6. Proyección Financiera de ROI */}
+            {resultado.proyeccion_roi && (
+              <div className="print-avoid-break bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-3">
+                  💰 6. Proyección Financiera de Retorno de Inversión (ROI)
+                </h2>
+                <div className="grid grid-cols-3 gap-3 mb-3 text-xs text-center">
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-lg">
+                    <span className="text-[10px] text-slate-500 font-bold block">CONSERVADOR</span>
+                    <span className="font-bold text-slate-800">{resultado.proyeccion_roi.escenario_pesimista}</span>
+                  </div>
+                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    <span className="text-[10px] text-emerald-800 font-bold block">REALISTA</span>
+                    <span className="font-bold text-emerald-900 text-sm">{resultado.proyeccion_roi.escenario_realista}</span>
+                  </div>
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-lg">
+                    <span className="text-[10px] text-slate-500 font-bold block">OPTIMISTA</span>
+                    <span className="font-bold text-slate-800">{resultado.proyeccion_roi.escenario_optimista}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-700 italic">{resultado.proyeccion_roi.conclusion}</p>
+              </div>
+            )}
+
+            {/* 7. Copys Reescritos & Objeciones */}
+            <div className="print-avoid-break grid grid-cols-2 gap-4">
+              {resultado.copys_reescritos && (
+                <div className="border border-slate-200 rounded-xl p-4">
+                  <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                    ✍️ 7. Copys de Alta Conversión
+                  </h2>
+                  <div className="space-y-2 text-xs">
+                    {resultado.copys_reescritos.map((c, i) => (
+                      <div key={i} className="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div className="font-bold text-slate-800">{c.enfoque}:</div>
+                        <div className="text-slate-900 font-semibold mt-0.5">&ldquo;{c.headline}&rdquo;</div>
+                        <div className="text-slate-600 text-[11px]">{c.subheadline}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {resultado.armas_venta_objeciones && (
+                <div className="border border-slate-200 rounded-xl p-4">
+                  <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                    🛡️ 8. Armas de Venta vs Objeciones
+                  </h2>
+                  <div className="space-y-2 text-xs">
+                    {resultado.armas_venta_objeciones.map((a, i) => (
+                      <div key={i} className="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                        <div className="font-bold text-rose-800">Objeción: &ldquo;{a.objecion || a.objecion_cliente}&rdquo;</div>
+                        <div className="text-slate-700 text-[11px] mt-0.5"><strong>Respuesta:</strong> {a.contramedida || a.contramedida_persuasiva}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 8. Roadmap en 5 Fases */}
+            {resultado.roadmap && (
+              <div className="print-avoid-break border border-slate-200 rounded-xl p-4">
+                <h2 className="text-sm font-bold text-[#1B4332] uppercase tracking-wider mb-2">
+                  🗺️ 9. Roadmap de Implementación en 5 Fases
+                </h2>
+                <div className="grid grid-cols-5 gap-2 text-center text-xs">
+                  {resultado.roadmap.map((r, i) => (
+                    <div key={i} className="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="text-[10px] font-bold text-emerald-800 block">{r.fase}</span>
+                      <span className="text-[11px] text-slate-700 block mt-1">{r.accion}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pie de Página Oficial en PDF */}
+            <div className="border-t-2 border-[#1B4332] pt-3 flex items-center justify-between text-[10px] text-slate-500">
+              <div>© {new Date().getFullYear()} Marketing Amable • Todos los derechos reservados.</div>
+              <div>Diseñado con pasión por <strong>MARKETING AMABLE</strong> <span className="font-mono">v.05</span></div>
+            </div>
+
+          </div>
+        )}
+
       </main>
 
       {/* Footer Obligatorio Oficial de Marketing Amable (Pill Glassmorphism) */}
-      <footer className="w-full border-t border-white/10 py-6 mt-16 bg-[#0D0D0D]">
+      <footer className="w-full border-t border-white/10 py-6 mt-16 bg-[#0D0D0D] no-print">
         <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
             &copy; {new Date().getFullYear()} <span className="text-slate-200 font-semibold">Auditor Épico</span> • Todos los derechos reservados.
@@ -1706,7 +1966,7 @@ ${res.roadmap?.map((r) => `- **${r.fase}:** ${r.accion}`).join('\n') || ''}
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.04</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.05</span>
           </div>
         </div>
       </footer>
