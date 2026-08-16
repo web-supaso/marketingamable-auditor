@@ -482,6 +482,8 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
                 onChange={(e) => setIndustria(e.target.value)}
               >
                 <option>Clínica Dental / Salud</option>
+                <option>Turismo / Eventos / Experiencias VIP</option>
+                <option>Moda / Estilo de Vida / Decoración</option>
                 <option>Reformas / Construcción / Hogar</option>
                 <option>Restaurante / Hostelería</option>
                 <option>Despacho Legal / Contable</option>
@@ -489,6 +491,7 @@ Soy desarrollador web y puedo solucionar la "Recomendación Prioritaria" (${resu
                 <option>Estética / Belleza / Spa</option>
                 <option>Inmobiliaria / Real Estate</option>
                 <option>Comercio / Tienda Online</option>
+                <option>General / Otra Industria</option>
               </select>
             </div>
           </div>
