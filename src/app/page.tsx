@@ -39,7 +39,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Calculator,
-  ShieldCheck
+  ShieldCheck,
+  Boxes,
+  Layers,
+  ArrowRight,
+  ArrowLeft,
+  Search,
+  Filter,
+  Plus,
+  Grid,
+  Cpu,
+  FolderGit2,
+  Terminal,
+  BookmarkPlus
 } from 'lucide-react';
 
 interface GapRow {
@@ -199,13 +211,206 @@ interface AuditResult {
   };
 }
 
+interface ProfileItem {
+  id: 'juanpablo' | 'leandro' | 'hugo';
+  name: string;
+  role: string;
+  avatar: string;
+}
+
+const PROFILES: ProfileItem[] = [
+  {
+    id: 'juanpablo',
+    name: 'Juan Pablo Vezzato',
+    role: 'Lead Strategic Consultant',
+    avatar: '/juanpablo.avif',
+  },
+  {
+    id: 'leandro',
+    name: 'Leandro Rodriguez',
+    role: 'Social Media & Video',
+    avatar: '/leandro.avif',
+  },
+  {
+    id: 'hugo',
+    name: 'Javier',
+    role: 'Chief Designer',
+    avatar: '/javier.avif',
+  },
+];
+
+interface PluginItem {
+  id: string;
+  name: string;
+  category: 'WPO & Rendimiento' | 'Formularios & Leads' | 'Seguridad & RGPD' | 'SEO & GEO' | 'Arquitectura & Vite';
+  version: string;
+  description: string;
+  tags: string[];
+  snippet: string;
+  complexity: 'Ultraligero (<10KB)' | 'Ligero (<30KB)' | 'Modular';
+}
+
+const INITIAL_PLUGINS: PluginItem[] = [
+  {
+    id: 'webp-client-compressor',
+    name: 'Compresor WebP React & Canvas',
+    category: 'WPO & Rendimiento',
+    version: 'v.1.2',
+    description: 'Compresión en el navegador del cliente antes de subir a Storage/Supabase. Reduce imágenes >85% con generación de Blob WebP instantáneo.',
+    tags: ['React 19', 'Canvas API', 'WebP', 'Zero Server Load'],
+    complexity: 'Ultraligero (<10KB)',
+    snippet: `export async function compressToWebP(file: File, maxWidth = 1200, quality = 0.82): Promise<{ webpFile: File; previewUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('Compresión fallida'));
+        const webpFile = new File([blob], file.name.replace(/\\.[^/.]+$/, "") + ".webp", { type: "image/webp" });
+        resolve({ webpFile, previewUrl: URL.createObjectURL(blob) });
+      }, "image/webp", quality);
+    };
+    img.onerror = reject;
+  });
+}`
+  },
+  {
+    id: 'vite-php-packager',
+    name: 'Vite CopyBackendPlugin (FTP Ready)',
+    category: 'Arquitectura & Vite',
+    version: 'v.2.0',
+    description: 'Plugin de Vite que empaqueta automáticamente el backend PHP dentro de dist/backend al ejecutar npm run build para despliegue por FTP.',
+    tags: ['Vite 6', 'PHP', 'FTP Build', 'DevOps'],
+    complexity: 'Ultraligero (<10KB)',
+    snippet: `import fs from 'fs';
+import path from 'path';
+
+export function copyBackendPlugin() {
+  return {
+    name: 'copy-backend-plugin',
+    closeBundle() {
+      const srcDir = path.resolve(__dirname, 'backend');
+      const destDir = path.resolve(__dirname, 'dist/backend');
+      if (fs.existsSync(srcDir)) {
+        fs.cpSync(srcDir, destDir, { recursive: true });
+        console.log('📦 Backend PHP empaquetado en dist/backend con éxito');
+      }
+    }
+  };
+}`
+  },
+  {
+    id: 'geo-schema-injector',
+    name: 'Inyector Schema.org ProfessionalService GEO Cádiz',
+    category: 'SEO & GEO',
+    version: 'v.1.0',
+    description: 'Marcado estructurado JSON-LD con coordenadas geográficas, servicios y directivas semánticas para indexación local y motores de IA.',
+    tags: ['Schema.org', 'JSON-LD', 'GEO Cádiz', 'SEO Local'],
+    complexity: 'Ultraligero (<10KB)',
+    snippet: `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Marketing Amable",
+  "image": "https://www.marketingamable.com/002.gif",
+  "url": "https://www.marketingamable.com",
+  "telephone": "+34 600 000 000",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Cádiz",
+    "addressRegion": "Andalucía",
+    "addressCountry": "ES"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 36.5271,
+    "longitude": -6.2886
+  },
+  "priceRange": "€€"
+}
+</script>`
+  },
+  {
+    id: 'zero-bloat-cookie-consent',
+    name: 'Banner RGPD / AEPD Zero-Bloat',
+    category: 'Seguridad & RGPD',
+    version: 'v.1.4',
+    description: 'Sistema de consentimiento de cookies estricto conforme a la guía AEPD 2024. Cero librerías externas, almacenamiento en localStorage y bloqueo preventivo.',
+    tags: ['RGPD', 'AEPD', 'Cookies', 'Zero-Bloat'],
+    complexity: 'Ligero (<30KB)',
+    snippet: `export function useCookieConsent() {
+  const [consent, setConsent] = useState<'granted' | 'denied' | 'pending'>(() => {
+    return (localStorage.getItem('mkt_cookie_consent') as any) || 'pending';
+  });
+
+  const accept = () => {
+    localStorage.setItem('mkt_cookie_consent', 'granted');
+    setConsent('granted');
+  };
+
+  const reject = () => {
+    localStorage.setItem('mkt_cookie_consent', 'denied');
+    setConsent('denied');
+  };
+
+  return { consent, accept, reject };
+}`
+  },
+  {
+    id: 'budget-calculator-core',
+    name: 'Calculadora de Presupuestos & Proyección ROI',
+    category: 'Formularios & Leads',
+    version: 'v.2.1',
+    description: 'Motor algorítmico de tarificación dinámica con colchón de seguridad del 15%, tasa horaria y derivación de leads calificados a Supabase.',
+    tags: ['Finanzas', 'ROI', 'Supabase', 'TypeScript'],
+    complexity: 'Modular',
+    snippet: `export function calculateProjectEstimate(answers: Record<string, any>, config = { hourlyRate: 50, safetyMargin: 1.15 }) {
+  let baseHours = 35;
+  if (answers.projectType === 'P1_ECOMM') baseHours = 85;
+  if (answers.projectType === 'P1_LMS') baseHours = 110;
+  if (answers.projectType === 'P1_APP') baseHours = 140;
+
+  const totalHours = Math.round(baseHours * config.safetyMargin);
+  const totalEuro = totalHours * config.hourlyRate;
+
+  return {
+    hours: totalHours,
+    priceEuro: totalEuro,
+    recommendedTimelineWeeks: Math.ceil(totalHours / 25)
+  };
+}`
+  }
+];
+
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<ProfileItem | null>(null);
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [authenticatedUser, setAuthenticatedUser] = useState<{
+    id: string;
+    name: string;
+    role: string;
+    email: string;
+    avatar: string;
+  } | null>(null);
+
+  // Navegación modular del Hub de Intranet
+  const [activeApp, setActiveApp] = useState<'hub' | 'auditor' | 'plugins'>('hub');
+  const [pluginCategoryFilter, setPluginCategoryFilter] = useState<string>('Todos');
+  const [pluginSearch, setPluginSearch] = useState<string>('');
+  const [selectedPluginSnippet, setSelectedPluginSnippet] = useState<PluginItem | null>(null);
+  const [copiedPluginId, setCopiedPluginId] = useState<string | null>(null);
 
   const [inputMode, setInputMode] = useState<'url' | 'html_file' | 'screenshot'>('url');
   const [url, setUrl] = useState('');
@@ -229,11 +434,19 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
     const authStatus = typeof window !== 'undefined' ? localStorage.getItem('mkt_intranet_auth') : null;
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('mkt_user_profile') : null;
     
     if (authStatus === 'true') {
       setTimeout(() => {
         if (isMounted) {
           setIsAuthenticated(true);
+          if (storedUser) {
+            try {
+              setAuthenticatedUser(JSON.parse(storedUser));
+            } catch {
+              // ignore json error
+            }
+          }
           setCheckingAuth(false);
         }
       }, 0);
@@ -259,7 +472,7 @@ export default function Home() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!passwordInput) return;
+    if (!selectedProfile || !emailInput.trim() || !passwordInput.trim()) return;
     setLoginLoading(true);
     setLoginError('');
 
@@ -267,18 +480,26 @@ export default function Home() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: passwordInput }),
+        body: JSON.stringify({
+          profileId: selectedProfile.id,
+          email: emailInput.trim(),
+          password: passwordInput,
+        }),
       });
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('mkt_intranet_auth', 'true');
+        if (data.user) {
+          localStorage.setItem('mkt_user_profile', JSON.stringify(data.user));
+          setAuthenticatedUser(data.user);
+        }
         setIsAuthenticated(true);
         refreshHistorial();
       } else {
-        setLoginError(data.error || 'Clave de acceso incorrecta');
+        setLoginError(data.error || 'No pudimos validar el acceso. El correo electrónico y la contraseña no corresponden al perfil seleccionado.');
       }
     } catch {
-      setLoginError('Error al conectar con el servidor de autenticación');
+      setLoginError('No pudimos validar el acceso. El correo electrónico y la contraseña no corresponden al perfil seleccionado.');
     } finally {
       setLoginLoading(false);
     }
@@ -286,8 +507,13 @@ export default function Home() {
 
   const handleLogout = () => {
     localStorage.removeItem('mkt_intranet_auth');
+    localStorage.removeItem('mkt_user_profile');
     setIsAuthenticated(false);
+    setAuthenticatedUser(null);
+    setSelectedProfile(null);
+    setEmailInput('');
     setPasswordInput('');
+    setLoginError('');
   };
 
   const refreshHistorial = () => {
@@ -670,87 +896,211 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
   // 2. Pantalla de Bloqueo / Login Intranet
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col justify-between font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D] py-2">
-        <div className="flex-1 flex items-center justify-center p-3">
-          <div className="max-w-sm w-full bg-[#121212] p-6 rounded-2xl border border-white/10 shadow-2xl space-y-4">
+      <div className="min-h-screen bg-[#0D0D0D] text-slate-100 flex flex-col justify-between font-sans selection:bg-[#D8F3DC] selection:text-[#0D0D0D] py-4 px-4">
+        <div className="flex-1 flex items-center justify-center py-6">
+          <div className="w-full max-w-2xl bg-[#121212] p-6 md:p-10 rounded-3xl border border-white/10 shadow-2xl space-y-6">
             
+            {/* Header del Login con Branding Oficial */}
             <div className="text-center flex flex-col items-center">
-              <Image src="/002.gif" alt="Marketing Amable" width={56} height={56} className="h-12 w-auto mb-2 drop-shadow-md" unoptimized />
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider mb-1.5">
+              <Image 
+                src="/002.gif" 
+                alt="Marketing Amable" 
+                width={64} 
+                height={64} 
+                className="h-14 w-auto mb-2 drop-shadow-md" 
+                unoptimized 
+              />
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#1B4332]/50 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider mb-2">
                 <span>Intranet Privada</span>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 mb-1">
-                <span className="text-2xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
-                <span className="text-2xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <span className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: '#FFFFFF' }}>MARKETING</span>
+                <span className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: '#D8F3DC' }}>AMABLE</span>
               </div>
 
-              <h2 className="text-sm font-bold text-slate-200">Auditor Comercial & Autoridad 360°</h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Ingresa tu clave de acceso para desbloquear la suite.
+              <h1 className="text-lg md:text-xl font-bold text-white">Acceso a Intranet</h1>
+              <p className="text-xs md:text-sm text-slate-400 mt-1">
+                {selectedProfile ? 'Introduce tus credenciales de acceso' : 'Selecciona tu perfil para continuar'}
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Clave de Acceso Intranet
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                    <Lock size={15} />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Escribe tu contraseña..."
-                    className="w-full pl-9 pr-9 py-2.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-xs"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
+            {/* PASO 1: Selector de Perfil (3 perfiles reales) */}
+            {!selectedProfile ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {PROFILES.map((profile) => (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProfile(profile);
+                        setEmailInput('');
+                        setPasswordInput('');
+                        setLoginError('');
+                      }}
+                      className="flex flex-col items-center text-center p-5 rounded-2xl bg-[#161616] border border-white/10 hover:border-[#D8F3DC]/60 hover:bg-[#1a1a1a] transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-[0_10px_30px_-10px_rgba(216,243,220,0.15)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D8F3DC]"
+                    >
+                      <div className="relative mb-3">
+                        <Image
+                          src={profile.avatar}
+                          alt={profile.name}
+                          width={96}
+                          height={96}
+                          className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border border-white/10 group-hover:border-[#D8F3DC]/60 transition-colors shadow-md grayscale group-hover:grayscale-0 duration-300"
+                          unoptimized
+                        />
+                        <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#1B4332] border-2 border-[#121212] flex items-center justify-center text-[#D8F3DC] opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Check size={12} strokeWidth={3} />
+                        </div>
+                      </div>
+
+                      <h3 className="text-sm md:text-base font-bold text-white group-hover:text-[#D8F3DC] transition-colors leading-tight">
+                        {profile.name}
+                      </h3>
+                      <p className="text-[10px] md:text-[11px] text-slate-400 font-medium uppercase tracking-wider mt-1 line-clamp-2">
+                        {profile.role}
+                      </p>
+
+                      <div className="mt-4 pt-3 border-t border-white/5 w-full flex items-center justify-center gap-1 text-[11px] font-bold text-slate-400 group-hover:text-[#D8F3DC] transition-colors">
+                        <span>Acceder</span>
+                        <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="text-center text-[11px] text-slate-500 pt-2">
+                  Uso exclusivo para el equipo autorizado de Marketing Amable.
                 </div>
               </div>
+            ) : (
+              /* PASO 2: Formulario de credenciales del perfil seleccionado */
+              <div className="max-w-md mx-auto w-full space-y-5">
+                {/* Botón para volver a la selección de perfiles */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedProfile(null);
+                    setLoginError('');
+                    setPasswordInput('');
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-[#D8F3DC] transition-colors cursor-pointer group"
+                >
+                  <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                  <span>← Cambiar perfil</span>
+                </button>
 
-              {loginError && (
-                <div className="p-2.5 bg-rose-950/60 border border-rose-800 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-                  <AlertTriangle size={13} className="shrink-0" />
-                  <span>{loginError}</span>
+                {/* Ficha persistente del perfil seleccionado */}
+                <div className="flex items-center gap-4 p-3.5 bg-[#161616] rounded-2xl border border-white/10">
+                  <Image
+                    src={selectedProfile.avatar}
+                    alt={selectedProfile.name}
+                    width={56}
+                    height={56}
+                    className="w-14 h-14 rounded-xl object-cover border border-[#D8F3DC]/40 shadow-sm"
+                    unoptimized
+                  />
+                  <div className="text-left">
+                    <h3 className="text-base font-bold text-white leading-tight">
+                      {selectedProfile.name}
+                    </h3>
+                    <p className="text-[11px] text-[#D8F3DC] font-semibold uppercase tracking-wider">
+                      {selectedProfile.role}
+                    </p>
+                  </div>
                 </div>
-              )}
 
-              <button
-                type="submit"
-                disabled={loginLoading || !passwordInput}
-                className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-xs cursor-pointer"
-              >
-                {loginLoading ? (
-                  <>
-                    <Loader2 className="animate-spin text-[#0D0D0D]" size={15} />
-                    <span>Verificando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock size={15} />
-                    <span>Ingresar a la Intranet</span>
-                  </>
-                )}
-              </button>
-            </form>
+                {/* Formulario de Correo + Contraseña */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5 text-left">
+                      Correo electrónico
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <Mail size={15} />
+                      </div>
+                      <input
+                        type="email"
+                        placeholder="Introduce tu correo electrónico..."
+                        className="w-full pl-9 pr-4 py-2.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-xs"
+                        value={emailInput}
+                        onChange={(e) => setEmailInput(e.target.value)}
+                        autoFocus
+                        required
+                      />
+                    </div>
+                  </div>
 
-            <div className="text-center text-[10px] text-slate-500">
-              Uso exclusivo para el equipo de Marketing Amable.
-            </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1.5 text-left">
+                      Contraseña
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                        <Lock size={15} />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Introduce tu contraseña..."
+                        className="w-full pl-9 pr-9 py-2.5 bg-[#0D0D0D] border border-white/15 text-white rounded-xl focus:ring-2 focus:ring-[#D8F3DC] focus:border-transparent outline-none transition text-xs"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mensaje de Error Genérico */}
+                  {loginError && (
+                    <div className="p-3 bg-rose-950/70 border border-rose-800 rounded-xl text-rose-200 text-xs flex flex-col gap-2 text-left">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle size={15} className="shrink-0 text-rose-400 mt-0.5" />
+                        <span className="leading-relaxed">{loginError}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLoginError('')}
+                        className="self-end text-[11px] font-bold text-[#D8F3DC] hover:underline cursor-pointer"
+                      >
+                        Intentar nuevamente
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loginLoading || !emailInput.trim() || !passwordInput.trim()}
+                    className="w-full bg-[#D8F3DC] hover:bg-white text-[#0D0D0D] font-extrabold py-3 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#D8F3DC]/10 disabled:opacity-50 disabled:cursor-not-allowed text-xs cursor-pointer"
+                  >
+                    {loginLoading ? (
+                      <>
+                        <Loader2 className="animate-spin text-[#0D0D0D]" size={15} />
+                        <span>Validando credenciales...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={15} />
+                        <span>Entrar a la Intranet</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Footer Oficial */}
+        {/* Footer Oficial Marketing Amable */}
         <footer className="w-full border-t border-white/10 py-3 bg-[#0D0D0D]">
           <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
             <div>&copy; {new Date().getFullYear()} Marketing Amable. Todos los derechos reservados.</div>
@@ -766,7 +1116,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
                 <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
                 <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
               </a>
-              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.10</span>
+              <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.11</span>
             </div>
           </div>
         </footer>
@@ -780,23 +1130,408 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
       
       {/* Barra Superior de Sesión */}
       <div className="w-full bg-[#121212]/80 backdrop-blur border-b border-white/10 px-4 md:px-8 py-2 flex items-center justify-between text-xs no-print">
-        <div className="flex items-center gap-2 text-slate-400">
+        <div className="flex items-center gap-3 text-slate-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Sesión Activa en Intranet</span>
+          {activeApp !== 'hub' ? (
+            <button
+              onClick={() => setActiveApp('hub')}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-[#1B4332] text-[#D8F3DC] hover:text-white border border-white/10 transition cursor-pointer font-medium"
+            >
+              <ArrowLeft size={13} />
+              <span>Volver al Centro de Control</span>
+            </button>
+          ) : (
+            <span className="text-slate-300 font-semibold tracking-wide flex items-center gap-1.5">
+              <span>Intranet Marketing Amable</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-[#D8F3DC] font-normal">Centro de Control</span>
+            </span>
+          )}
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-rose-300 transition cursor-pointer px-2 py-0.5 rounded-lg hover:bg-white/5"
-        >
-          <LogOut size={13} />
-          <span>Cerrar Sesión</span>
-        </button>
+
+        <div className="flex items-center gap-4">
+          {authenticatedUser ? (
+            <div className="flex items-center gap-2">
+              <Image 
+                src={authenticatedUser.avatar} 
+                alt={authenticatedUser.name} 
+                width={22} 
+                height={22} 
+                className="w-5 h-5 rounded-full object-cover border border-emerald-400/40" 
+                unoptimized 
+              />
+              <span className="text-slate-200 font-semibold">{authenticatedUser.name}</span>
+              <span className="text-slate-500 hidden sm:inline">({authenticatedUser.role})</span>
+            </div>
+          ) : (
+            <span>Sesión Activa</span>
+          )}
+
+          <div className="h-3.5 w-px bg-white/10"></div>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-rose-300 transition cursor-pointer px-2 py-0.5 rounded-lg hover:bg-white/5"
+          >
+            <LogOut size={13} />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
       </div>
 
       <main className="flex-1 max-w-5xl w-full mx-auto p-3 md:p-6">
         
-        {/* Header Hero Branding Oficial */}
-        <header className="mb-5 text-center flex flex-col items-center no-print">
+        {/* VISTA 1: HUB / CENTRO DE CONTROL DE INTRANET (2 divisiones + extensible) */}
+        {activeApp === 'hub' && (
+          <div className="space-y-8 animate-fade-in py-4">
+            {/* Header Hero del Hub */}
+            <header className="text-center flex flex-col items-center">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <Image src="/002.gif" alt="Marketing Amable" width={56} height={56} className="h-12 md:h-14 w-auto drop-shadow-md" unoptimized />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-2xl md:text-4xl font-black tracking-tight" style={{ color: '#FFFFFF', fontFamily: "'Lexend', sans-serif" }}>MARKETING</span>
+                  <span className="text-2xl md:text-4xl font-black tracking-tight" style={{ color: '#D8F3DC', fontFamily: "'Lexend', sans-serif" }}>AMABLE</span>
+                </div>
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#1B4332]/50 border border-[#1B4332] text-[#D8F3DC] text-[11px] font-bold uppercase tracking-wider mb-2 shadow-sm">
+                <span>Intranet Privada • Centro de Control</span>
+              </div>
+
+              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight mt-1">
+                ¡Hola, {authenticatedUser ? authenticatedUser.name.split(' ')[0] : 'Equipo'}!
+              </h1>
+              <p className="text-slate-400 text-xs md:text-sm max-w-xl mx-auto mt-1.5 leading-relaxed">
+                Selecciona el espacio de trabajo o herramienta con la que deseas operar hoy:
+              </p>
+            </header>
+
+            {/* Grid Modular de Aplicaciones (2 divisiones activas + extensible) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Tarjeta 1: Gestor de Plugins & Prompts */}
+              <div 
+                onClick={() => setActiveApp('plugins')}
+                className="group relative bg-[#121212] hover:bg-[#161616] border border-white/10 hover:border-[#D8F3DC]/60 rounded-3xl p-6 md:p-8 transition-all duration-300 cursor-pointer shadow-xl hover:shadow-[0_15px_40px_-10px_rgba(216,243,220,0.15)] flex flex-col justify-between hover:-translate-y-1"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1B4332]/50 border border-[#D8F3DC]/30 flex items-center justify-center text-[#D8F3DC] group-hover:scale-110 transition-transform">
+                      <Boxes size={24} />
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1B4332]/60 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider">
+                      Nueva Suite
+                    </span>
+                  </div>
+
+                  <h2 className="text-xl font-bold text-white group-hover:text-[#D8F3DC] transition-colors mb-2">
+                    Gestor de Plugins & Prompts
+                  </h2>
+                  <p className="text-xs md:text-sm text-slate-400 leading-relaxed mb-5">
+                    Repositorio interno de ingeniería: componentes eco-tech reutilizables, plugins ultraligeros (&lt;10KB), snippets de código y prompts para desarrollo web con IA.
+                  </p>
+
+                  <div className="space-y-2 border-t border-white/5 pt-4 text-xs text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Compresor WebP React & Canvas en cliente</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Empaquetador automático Vite + PHP para FTP</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Inyector Schema.org ProfessionalService GEO Cádiz</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Banner RGPD/AEPD Zero-Bloat y calculadora ROI</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#D8F3DC]">
+                  <span>Abrir Gestor de Plugins</span>
+                  <div className="w-8 h-8 rounded-xl bg-[#1B4332]/40 border border-[#D8F3DC]/30 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                    <ArrowRight size={15} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tarjeta 2: Auditor Comercial & Autoridad 360° */}
+              <div 
+                onClick={() => setActiveApp('auditor')}
+                className="group relative bg-[#121212] hover:bg-[#161616] border border-white/10 hover:border-[#D8F3DC]/60 rounded-3xl p-6 md:p-8 transition-all duration-300 cursor-pointer shadow-xl hover:shadow-[0_15px_40px_-10px_rgba(216,243,220,0.15)] flex flex-col justify-between hover:-translate-y-1"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1B4332]/50 border border-[#D8F3DC]/30 flex items-center justify-center text-[#D8F3DC] group-hover:scale-110 transition-transform">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#1B4332]/60 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider">
+                      Suite Activa
+                    </span>
+                  </div>
+
+                  <h2 className="text-xl font-bold text-white group-hover:text-[#D8F3DC] transition-colors mb-2">
+                    Auditor Comercial & Autoridad 360°
+                  </h2>
+                  <p className="text-xs md:text-sm text-slate-400 leading-relaxed mb-5">
+                    Diagnóstico comercial en vivo, detección de fugas de dinero, optimización de velocidad (WPO), auditoría RGPD/AEPD y generador de estrategias de cierre comercial.
+                  </p>
+
+                  <div className="space-y-2 border-t border-white/5 pt-4 text-xs text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Análisis en vivo de URLs, index.html y capturas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Detección de fugas financieras y cálculo de pérdidas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Guiones de prospección y estrategia Anti-ban</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D8F3DC]"></span>
+                      <span>Exportación de informes y presentación para clientes</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#D8F3DC]">
+                  <span>Abrir Auditor Comercial</span>
+                  <div className="w-8 h-8 rounded-xl bg-[#1B4332]/40 border border-[#D8F3DC]/30 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                    <ArrowRight size={15} />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Fila de Expansión / Próximas Apps */}
+            <div className="p-5 rounded-2xl bg-[#121212]/50 border border-dashed border-white/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+                  <Plus size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-300">Arquitectura Modular Preparada</h3>
+                  <p className="text-[11px] text-slate-500">Espacios listos para agregar nuevos módulos: CRM de Clientes, Generador de Presupuestos y Calculadora Eco-Tech.</p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-slate-400 font-mono">
+                Extensible v.11
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* VISTA 2: GESTOR DE PLUGINS & PROMPTS */}
+        {activeApp === 'plugins' && (
+          <div className="space-y-6 animate-fade-in py-2">
+            {/* Header del Gestor de Plugins */}
+            <header className="mb-4 text-left flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#1B4332]/40 border border-[#1B4332] text-[#D8F3DC] text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                  <Boxes size={12} />
+                  <span>Ingeniería Sostenible & Código</span>
+                </div>
+                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                  Gestor de Plugins & Prompts
+                </h1>
+                <p className="text-slate-400 text-xs md:text-sm mt-0.5">
+                  Biblioteca interna de componentes reutilizables, utilidades de compilación y snippets optimizados.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveApp('hub')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#161616] hover:bg-[#1B4332] text-slate-300 hover:text-white border border-white/10 transition text-xs font-semibold self-start md:self-auto cursor-pointer"
+              >
+                <ArrowLeft size={14} />
+                <span>Volver al Hub</span>
+              </button>
+            </header>
+
+            {/* Barra de Filtros y Búsqueda */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="relative flex-1 w-full">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Buscar plugin, prompt o funcionalidad..."
+                  value={pluginSearch}
+                  onChange={(e) => setPluginSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#121212] border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#D8F3DC]/60 transition"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                {['Todos', 'WPO & Rendimiento', 'Formularios & Leads', 'Seguridad & RGPD', 'SEO & GEO', 'Arquitectura & Vite'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setPluginCategoryFilter(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
+                      pluginCategoryFilter === cat
+                        ? 'bg-[#D8F3DC] text-[#0D0D0D] font-bold shadow-sm'
+                        : 'bg-[#121212] text-slate-400 hover:text-white border border-white/10'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid de Plugins */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {INITIAL_PLUGINS
+                .filter((p) => {
+                  const matchCat = pluginCategoryFilter === 'Todos' || p.category === pluginCategoryFilter;
+                  const matchSearch =
+                    !pluginSearch ||
+                    p.name.toLowerCase().includes(pluginSearch.toLowerCase()) ||
+                    p.description.toLowerCase().includes(pluginSearch.toLowerCase()) ||
+                    p.tags.some((t) => t.toLowerCase().includes(pluginSearch.toLowerCase()));
+                  return matchCat && matchSearch;
+                })
+                .map((plugin) => (
+                  <div
+                    key={plugin.id}
+                    className="bg-[#121212] border border-white/10 hover:border-[#D8F3DC]/40 rounded-2xl p-5 flex flex-col justify-between transition-all group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#D8F3DC] bg-[#1B4332]/50 px-2 py-0.5 rounded-md border border-[#1B4332]">
+                          {plugin.category}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-500 font-mono">{plugin.version}</span>
+                          <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40 font-semibold">
+                            {plugin.complexity}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h3 className="text-base font-bold text-white group-hover:text-[#D8F3DC] transition-colors mb-1.5">
+                        {plugin.name}
+                      </h3>
+                      <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                        {plugin.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {plugin.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] text-slate-300 bg-[#161616] px-2 py-0.5 rounded border border-white/5"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPluginSnippet(plugin)}
+                        className="inline-flex items-center gap-1.5 text-xs text-[#D8F3DC] hover:text-white font-semibold cursor-pointer"
+                      >
+                        <Code2 size={14} />
+                        <span>Ver Código / Snippet</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(plugin.snippet);
+                          setCopiedPluginId(plugin.id);
+                          setTimeout(() => setCopiedPluginId(null), 2000);
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] bg-white/5 hover:bg-[#1B4332] text-slate-300 hover:text-white px-2.5 py-1 rounded-lg border border-white/10 transition cursor-pointer font-medium"
+                      >
+                        {copiedPluginId === plugin.id ? (
+                          <>
+                            <Check size={12} className="text-emerald-400" />
+                            <span className="text-emerald-400">¡Copiado!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={12} />
+                            <span>Copiar</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Modal de Previsualización de Código */}
+            {selectedPluginSnippet && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div className="bg-[#121212] border border-white/15 rounded-2xl w-full max-w-2xl p-6 text-white shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div>
+                      <span className="text-[10px] text-[#D8F3DC] uppercase font-bold tracking-wider">
+                        {selectedPluginSnippet.category}
+                      </span>
+                      <h3 className="text-lg font-bold text-white">{selectedPluginSnippet.name}</h3>
+                    </div>
+                    <button
+                      onClick={() => setSelectedPluginSnippet(null)}
+                      className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-300">{selectedPluginSnippet.description}</p>
+
+                  <div className="flex-1 overflow-auto bg-[#080808] border border-white/10 rounded-xl p-3.5 font-mono text-xs text-emerald-300">
+                    <pre className="whitespace-pre overflow-x-auto">{selectedPluginSnippet.snippet}</pre>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs">
+                    <span className="text-slate-500 font-mono text-[11px]">Complejidad: {selectedPluginSnippet.complexity}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedPluginSnippet.snippet);
+                        setCopiedPluginId(selectedPluginSnippet.id);
+                        setTimeout(() => setCopiedPluginId(null), 2000);
+                      }}
+                      className="inline-flex items-center gap-1.5 bg-[#D8F3DC] text-[#0D0D0D] font-extrabold px-4 py-2 rounded-xl hover:bg-white transition cursor-pointer text-xs"
+                    >
+                      {copiedPluginId === selectedPluginSnippet.id ? (
+                        <>
+                          <Check size={14} />
+                          <span>¡Código Copiado al Portapapeles!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={14} />
+                          <span>Copiar Código Completo</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VISTA 3: AUDITOR COMERCIAL & AUTORIDAD 360° */}
+        {activeApp === 'auditor' && (
+          <div className="animate-fade-in">
+            {/* Header Hero Branding Oficial */}
+            <header className="mb-5 text-center flex flex-col items-center no-print">
           <div className="flex items-center justify-center gap-3 mb-1.5">
             <Image src="/002.gif" alt="Marketing Amable" width={48} height={48} className="h-10 md:h-12 w-auto drop-shadow-md" unoptimized />
             <div className="flex items-center gap-1.5">
@@ -2585,13 +3320,16 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
           </div>
         )}
 
+      </div>
+    )}
+
       </main>
 
       {/* Footer Obligatorio Oficial de Marketing Amable (Pill Glassmorphism) */}
       <footer className="w-full border-t border-white/10 py-4 mt-8 bg-[#0D0D0D] no-print">
         <div className="max-w-5xl mx-auto px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <div>
-            &copy; {new Date().getFullYear()} <span className="text-slate-200 font-semibold">Auditor Épico</span> • Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} <span className="text-slate-200 font-semibold">Marketing Amable</span> • Intranet Suite
           </div>
 
           <div className="flex items-center gap-2">
@@ -2606,7 +3344,7 @@ ${res.guion_llamada ? `## 📞 14. GUIÓN CONSULTIVO DE VIDEOLLAMADA / CIERRE (1
               <span className="footer-marketing-span" style={{ color: '#FFFFFF', fontWeight: 800 }}>MARKETING</span>
               <span className="footer-amable-span" style={{ color: '#D8F3DC', fontWeight: 800 }}>AMABLE</span>
             </a>
-            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.10</span>
+            <span className="text-[10px] text-slate-500 font-mono tracking-tight">v.11</span>
           </div>
         </div>
       </footer>
